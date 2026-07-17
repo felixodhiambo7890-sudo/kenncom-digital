@@ -4,51 +4,57 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KENNCOM DIGITAL CENTRE</title>
+  
+  <!-- Free Progressive Web App Interface Optimization Settings -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#08080a">
+
+  <!-- Core Google Typography Server Pre-Fetch Links -->
   <link rel="preconnect" href="https://googleapis.com">
   <link rel="preconnect" href="https://gstatic.com" crossorigin>
   <link href="https://googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  
   <style>
+    /* Reset bounds and enforce clean monospace font fallbacks */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { 
-      background-color: #08080a;
-      font-family: 'Share Tech Mono', monospace; 
+      background-color: #08080a; 
+      font-family: 'Share Tech Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; 
       color: #a78bfa; 
-      line-height: 1.4;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 60px;
-      overflow-x: hidden;
-      position: relative;
+      line-height: 1.4; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      padding-top: 60px; 
+      overflow-x: hidden; 
+      position: relative; 
     }
-    
-    #matrixCanvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -1;
-      opacity: 0.15;
-      pointer-events: none;
+    #matrixCanvas { 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100vw; 
+      height: 100vh; 
+      z-index: -1; 
+      opacity: 0.15; 
+      pointer-events: none; 
     }
-    
-    .dashboard-envelope {
-      width: 100%;
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 0 20px;
-      text-align: center;
-      position: relative;
-      z-index: 10;
+    .dashboard-envelope { 
+      width: 100%; 
+      max-width: 960px; 
+      margin: 0 auto; 
+      padding: 0 20px; 
+      text-align: center; 
+      position: relative; 
+      z-index: 10; 
     }
-    
-    .font-cyber { font-family: 'Orbitron', sans-serif; }
+    .font-cyber { font-family: 'Orbitron', system-ui, -apple-system, sans-serif; }
     .glow-pink { color: #f472b6; text-shadow: 0 0 12px rgba(244, 114, 182, 0.6); }
     .glow-cyan { color: #22d3ee; text-shadow: 0 0 12px rgba(34, 211, 238, 0.6); }
     .glow-orange { color: #fb923c; text-shadow: 0 0 12px rgba(251, 146, 60, 0.5); }
-    
+  </style>
+  <style>
+    /* Top Sticky Menu Navigation: Centered Elements */
     .top-header {
       width: 100%;
       background-color: rgba(10, 10, 12, 0.95);
@@ -66,51 +72,122 @@
     .top-header nav a { color: #9ca3af; text-decoration: none; font-size: 11px; margin-left: 20px; letter-spacing: 1px; }
     .top-header nav a:hover { color: #22d3ee; }
 
+    /* Main Typography Adjustments */
     .hero-box { padding: 60px 0 30px 0; }
     .hero-badge { display: inline-block; padding: 4px 14px; border: 1px solid rgba(34, 211, 238, 0.25); background: rgba(34, 211, 238, 0.05); color: #22d3ee; font-size: 11px; border-radius: 4px; margin-bottom: 20px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; transition: all 0.3s ease; }
     .hero-title { font-size: 44px; font-weight: 900; letter-spacing: 4px; margin-bottom: 25px; line-height: 1.1; }
     
     .console-logger { background: rgba(15, 15, 18, 0.9); border: 1px solid #1f1f24; padding: 14px; max-width: 540px; margin: 0 auto 30px auto; text-align: left; font-size: 11px; color: #22d3ee; border-radius: 4px; }
-    .search-wrapper { margin: 30px 0; }
-    .search-input { background: #000; border: 1px solid rgba(167, 139, 250, 0.3); padding: 8px 16px; width: 100%; max-width: 300px; text-align: center; color: #22d3ee; font-size: 12px; border-radius: 4px; outline: none; }
+    .search-wrapper { margin: 30px 0; position: relative; max-width: 300px; margin: 0 auto 30px auto; }
+    .search-input { background: #000; border: 1px solid rgba(167, 139, 250, 0.3); padding: 8px 16px; width: 100%; text-align: center; color: #22d3ee; font-size: 12px; border-radius: 4px; outline: none; }
     .search-input:focus { border-color: #22d3ee; }
     
+    /* Cost Estimator Box Framework */
     .calc-box { background: rgba(13, 13, 17, 0.9); border: 1px solid #18181f; padding: 16px; max-width: 340px; margin: 0 auto 40px auto; border-radius: 6px; text-align: left; }
     .calc-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; }
     .calc-input { width: 60px; background: #000; border: 1px solid #27272a; text-align: center; color: #22d3ee; font-size: 12px; padding: 2px; outline: none; }
     .calc-select { background: #000; border: 1px solid #27272a; color: #22d3ee; font-size: 11px; padding: 2px; outline: none; }
     .calc-total-line { border-top: 1px solid #18181f; padding-top: 10px; margin-top: 10px; display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; }
     
-    .dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; width: 100%; }
+    /* Balanced Side-by-Side 2-Column CSS Grid Layout */
+    @media (min-width: 769px) {
+      .dashboard-grid { display: block; column-count: 2; column-gap: 20px; width: 100%; }
+      .cyber-card { display: inline-block; width: 100%; margin-bottom: 20px; break-inside: avoid; }
+    }
+    @media (max-width: 768px) {
+      .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; }
+      .cyber-card { margin-bottom: 0; }
+      .hero-title { font-size: 34px; }
+      .two-col-list { grid-template-columns: 1fr !important; }
+    }
+
     .cyber-card { background: rgba(15, 15, 20, 0.93); border: 1px solid rgba(167, 139, 250, 0.15); padding: 18px; border-radius: 6px; }
     .card-title { font-size: 12px; font-weight: bold; border-bottom: 1px solid #1f1f24; padding-bottom: 6px; margin-bottom: 12px; text-align: center; letter-spacing: 1px; }
     .two-col-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem 1rem; text-align: left; list-style: none; }
-    
-    .item { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #a78bfa; transition: opacity 0.2s, color 0.2s; cursor: pointer; user-select: none; }
-    .item:hover { color: #fff; }
-    .item.active-node { color: #fb923c !important; font-weight: bold; text-shadow: 0 0 8px rgba(251, 146, 60, 0.3); }
+
+    /* Tactile Selection Node Highlight Animation Properties */
+    .item { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #a78bfa; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; user-select: none; padding: 3px 6px; border-radius: 4px; position: relative; }
+    .item:hover { background: rgba(34, 211, 238, 0.08); color: #fff; }
+    .item.active-node { color: #fb923c !important; background: rgba(251, 146, 60, 0.12) !important; border-left: 2px solid #fb923c; padding-left: 8px; font-weight: bold; text-shadow: 0 0 10px rgba(251, 146, 60, 0.4); }
     .price-tag { color: #22d3ee; font-weight: bold; float: right; margin-right: 4px; }
     
+    .countdown-timer-span { display: block; font-size: 10px; margin-top: 4px; letter-spacing: 1px; font-weight: normal; opacity: 0.85; text-transform: uppercase; }
     .cursor-blink::after { content: '_'; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-    @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } .hero-title { font-size: 34px; } .two-col-list { grid-template-columns: 1fr; } }
   </style>
   <script>
+    let globalAudioCtx = null;
     function playClick() {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if(audioCtx.state === 'suspended') audioCtx.resume();
-      const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
-      osc.type = 'triangle'; osc.frequency.setValueAtTime(140, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.02);
-      gainNode.gain.setValueAtTime(0.03, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
-      osc.connect(gainNode); gainNode.connect(audioCtx.destination);
-      osc.start(); osc.stop(audioCtx.currentTime + 0.04);
+      try {
+        if (!globalAudioCtx) globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+        const osc = globalAudioCtx.createOscillator(); const gainNode = globalAudioCtx.createGain();
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(140, globalAudioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(700, globalAudioCtx.currentTime + 0.02);
+        gainNode.gain.setValueAtTime(0.03, globalAudioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.03);
+        osc.connect(gainNode); gainNode.connect(globalAudioCtx.destination);
+        osc.start(); osc.stop(globalAudioCtx.currentTime + 0.04);
+      } catch (e) { console.log('Audio deferred.'); }
     }
   </script>
 </head>
 <body onclick="playClick()">
+
   <canvas id="matrixCanvas"></canvas>
+
+  <header class="top-header">
+    <div class="logo font-cyber glow-cyan">KENNCOM DIGITAL</div>
+    <nav>
+      <a href="#home">HOME</a>
+      <a href="#calculator">ESTIMATOR</a>
+      <a href="#matrix-services">SERVICES</a>
+      <a href="#contact">UPLINK</a>
+    </nav>
+  </header>
+
+  <div class="dashboard-envelope">
+    <section id="home" class="hero-box">
+      <div id="statusBadge" class="hero-badge">CHECKING SYSTEM CLOCK...</div>
+      <h1 class="hero-title font-cyber glow-pink">KENNCOM DIGITAL</h1>
+      <div class="console-logger">
+        <div id="typingText" class="cursor-blink" style="min-height: 65px; line-height: 1.5; color: #34d399;"></div>
+      </div>
+    </section>
+
+    <section id="matrix-services">
+      <div class="search-wrapper">
+        <h2 class="font-cyber" style="font-size: 15px; font-weight: bold; color: #fff; letter-spacing: 1px; margin-bottom: 10px;">SYSTEM OPERATIONAL DIRECTORIES</h2>
+        <input type="text" id="cyberSearch" onkeyup="filterCyberNodes()" placeholder="Type to search all services..." class="search-input">
+        <span id="clearSearchBtn" onclick="forceResetSearch()" style="position: absolute; right: 15px; top: 34px; color: #f472b6; cursor: pointer; display: none; font-size: 12px; font-weight: bold; z-index: 20;">X</span>
+      </div>
+
+      <div id="calculator" class="calc-box">
+        <h3 class="font-cyber glow-cyan" style="font-size: 10px; font-weight: bold; text-align: center; margin-bottom: 12px; letter-spacing: 1px;">COST ESTIMATOR MODULE <span id="nodeCounter" style="color: #fb923c; margin-left: 5px;"></span></h3>
+        <div class="calc-row">
+          <span style="color: #9ca3af;">B&W Prints (KES 10/pg):</span>
+          <input type="number" id="bwPages" value="0" min="0" inputmode="numeric" oninput="calculateTotal()" class="calc-input">
+        </div>
+        <div class="calc-row">
+          <span style="color: #9ca3af;">Color Prints (KES 20/pg):</span>
+          <input type="number" id="colorPages" value="0" min="0" inputmode="numeric" oninput="calculateTotal()" class="calc-input">
+        </div>
+        <div class="calc-row">
+          <span style="color: #9ca3af;">Portal Access Base Fees:</span>
+          <select id="portalFee" onchange="calculateTotal()" class="calc-select">
+            <option value="0">None</option>
+            <option value="150">KRA Filing (KES 150)</option>
+            <option value="200">eCitizen App (KES 200)</option>
+            <option value="500">CV Blueprint (KES 500)</option>
+          </select>
+        </div>
+        <div class="calc-total-line">
+          <span style="color: #fff; font-size: 11px; text-transform: uppercase;">Total Estimate:</span>
+          <span class="font-cyber glow-orange"><span>KES </span><span id="grandTotal">0</span></span>
+        </div>
+      </div>
+
+      <div class="dashboard-grid" id="matrixContainer">
         <!-- NODE 01: Government Portals -->
         <div class="cyber-card">
           <div class="card-title font-cyber glow-pink">GOVERNMENT PORTALS</div>
@@ -140,7 +217,6 @@
             <li class="item" data-val="200" onclick="toggleItemNode(this)">> e-Signatures setup <span class="price-tag">K200</span></li>
           </ul>
         </div>
-
         <!-- NODE 02: Academic Hub -->
         <div class="cyber-card">
           <div class="card-title font-cyber glow-cyan">ACADEMIC HUB</div>
@@ -230,7 +306,6 @@
             <li class="item" data-val="300" onclick="toggleItemNode(this)">> Password recovery <span class="price-tag">K300</span></li>
           </ul>
         </div>
-
         <!-- NODE 06: Logistics & Finance -->
         <div class="cyber-card">
           <div class="card-title font-cyber glow-cyan">LOGISTICS & FINANCE</div>
@@ -251,7 +326,8 @@
             <li class="item" data-val="100" onclick="toggleItemNode(this)">> Online flight check-in <span class="price-tag">K100</span></li>
           </ul>
         </div>
-        <!-- NODE 07: Digital Economy -->
+
+        <!-- NODE 07: Digital Economy & AI -->
         <div class="cyber-card">
           <div class="card-title font-cyber glow-cyan">DIGITAL ECONOMY & AI</div>
           <ul class="two-col-list">
@@ -289,21 +365,34 @@
         </div>
       </div>
     </section>
-
     <section id="contact" style="padding: 40px 0; border-top: 1px solid #18181f; margin-top: 40px;">
       <div style="margin-top: 10px;">
         <h3 class="font-cyber glow-pink" style="font-size: 14px; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px;">ESTABLISH COMMS LINK</h3>
         <p style="font-size: 11px; color: #9ca3af; margin-bottom: 15px;">Secure a routing vector straight to our desk operator via WhatsApp.</p>
         
+        <!-- Primary Secure Verification Channel Anchors -->
         <a id="secureCommsLink" href="https://wa.me" target="_blank" style="display: inline-block; background: #25d366; color: #fff; text-decoration: none; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: bold; letter-spacing: 1px; padding: 10px 20px; border-radius: 4px; box-shadow: 0 4px 10px rgba(37,211,102,0.3); transition: transform 0.2s ease;">OPEN SECURE LINK</a>
         
+        <!-- Zero-Cost Document Pre-Staging Interface Routing -->
+        <p style="margin-top: 12px;"><a href="upload-vector.html" style="color: #22d3ee; text-decoration: none; font-size: 11px; letter-spacing: 1px;">[ 📁 GO TO DOCUMENT PRE-STAGING HUB ]</a></p>
+        
         <p style="font-size: 10px; color: #4b5563; margin-top: 30px; letter-spacing: 1px; text-transform: uppercase;">LOC: RONGO, KODESH BUILDING | KENNCOM DIGITAL CENTRE &copy; 2026</p>
+        <p style="margin-top: 15px;"><a href="#home" style="color: #22d3ee; text-decoration: none; font-size: 11px; letter-spacing: 1px;">[^ RETURN TO SYSTEM APEX]</a></p>
       </div>
     </section>
+  </div>
   <script>
     // --- CANVAS DUAL MATRIX ANIMATION RUNTIME ---
     const canvas = document.getElementById('matrixCanvas'); const ctx = canvas.getContext('2d');
-    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    let resizeTimeout;
+    function resize() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        columns = canvas.width / fontSize;
+        for (let i = 0; i < columns; i++) if(!drops[i]) drops[i] = 1;
+      }, 150);
+    }
     resize(); window.addEventListener('resize', resize);
     const symbols = '01100110X█▓▒░►▼▲◄■□⚙⚛⚡$'.split('');
     const fontSize = 14; let columns = canvas.width / fontSize;
@@ -321,6 +410,32 @@
     }
     setInterval(drawMatrix, 35);
 
+    // --- ACCIDENTAL REFRESH PREVENTION LAYER ---
+    window.addEventListener('beforeunload', (event) => {
+      const bw = parseInt(document.getElementById('bwPages').value) || 0;
+      const color = parseInt(document.getElementById('colorPages').value) || 0;
+      const portal = parseInt(document.getElementById('portalFee').value) || 0;
+      if (bw > 0 || color > 0 || portal > 0 || clickedItemsTotal > 0) {
+        event.preventDefault();
+        event.returnValue = 'You have a pending estimate invoice. Are you sure you want to leave?';
+      }
+    });
+
+    // --- QUICK KEYBOARD FOCUS SHORTCUT ---
+    window.addEventListener('keydown', (e) => {
+      const searchInput = document.getElementById('cyberSearch');
+      if (e.key === '/' && document.activeElement !== searchInput && document.activeElement.tagName !== 'INPUT') {
+        e.preventDefault();
+        if (searchInput) { searchInput.focus(); searchInput.select(); }
+      }
+    });
+
+    function forceResetSearch() {
+      const sInput = document.getElementById('cyberSearch');
+      if (sInput) { sInput.value = ''; filterCyberNodes(); if (typeof playClick === 'function') playClick(); }
+    }
+  </script>
+  <script>
     // --- INTERACTIVE ITEM CLICK NODE TRACKER ---
     let clickedItemsTotal = 0;
     function toggleItemNode(element) {
@@ -332,24 +447,45 @@
         element.classList.add('active-node');
         clickedItemsTotal += value;
       }
+      
+      const searchInput = document.getElementById('cyberSearch');
+      if (searchInput && searchInput.value !== '') {
+        searchInput.value = '';
+        filterCyberNodes();
+      }
       calculateTotal();
     }
 
-    // --- COMPREHENSIVE MATH ROUTINE & WHATSAPP GENERATION ---
+    // --- MATH ENGINE & AUTOMATED MESSAGE ITEMIZER ---
     function calculateTotal() {
       const bw = parseInt(document.getElementById('bwPages').value) || 0;
       const color = parseInt(document.getElementById('colorPages').value) || 0;
       const portal = parseInt(document.getElementById('portalFee').value) || 0;
+      const portalSelect = document.getElementById('portalFee');
       
       const grandTotal = (bw * 10) + (color * 20) + portal + clickedItemsTotal;
       document.getElementById('grandTotal').innerText = grandTotal.toLocaleString();
       
+      const activeCount = document.querySelectorAll('.active-node').length;
+      document.getElementById('nodeCounter').innerText = activeCount > 0 ? `[ ${activeCount} NODES ]` : '';
+      
       const linkElement = document.getElementById('secureCommsLink');
       if (linkElement) {
-        let message = `Hello Kenncom Digital, I would like to request assistance with some digital services.`;
-        if (grandTotal > 0) {
-          message += ` My current custom estimator invoice total comes to KES ${grandTotal}.`;
-        }
+        let itemsList = [];
+        const activeNodes = document.querySelectorAll('.active-node');
+        activeNodes.forEach(node => {
+          let cleanText = node.innerText.replace(/>/g, '').split('K')[0].trim();
+          itemsList.push(cleanText);
+        });
+        
+        if (bw > 0) itemsList.push(`${bw}x B&W Printing Pages`);
+        if (color > 0) itemsList.push(`${color}x Color Printing Pages`);
+        if (portal > 0 && portalSelect) itemsList.push(portalSelect.options[portalSelect.selectedIndex].text);
+
+        let message = `Hello Kenncom Digital, I want to process a transaction request:\n`;
+        if (itemsList.length > 0) message += `\n📋 SELECTED NODES:\n- ` + itemsList.join('\n- ') + `\n`;
+        message += `\n💰 TOTAL ESTIMATE: KES ${grandTotal}.`;
+        
         linkElement.href = `https://wa.me{encodeURIComponent(message)}`;
       }
     }
@@ -358,38 +494,69 @@
     function filterCyberNodes() {
       const input = document.getElementById('cyberSearch').value.toLowerCase();
       const cards = document.getElementsByClassName('cyber-card');
+      const clearBtn = document.getElementById('clearSearchBtn');
+      if (clearBtn) clearBtn.style.display = input !== '' ? 'block' : 'none';
+
       for (let i = 0; i < cards.length; i++) {
         const items = cards[i].getElementsByClassName('item'); let cardMatches = false;
         for (let j = 0; j < items.length; j++) {
           if (items[j].innerText.toLowerCase().includes(input)) {
-            items[j].style.opacity = "1"; cardMatches = true;
+            items[j].style.display = ""; cardMatches = true;
           } else if (input !== '') {
-            items[j].style.opacity = "0.2";
-          } else { items[j].style.opacity = "1"; }
+            items[j].style.display = "none";
+          } else { items[j].style.display = ""; }
         }
         cards[i].style.display = (cardMatches || input === '') ? "" : "none";
       }
     }
-
-    // --- EAST AFRICA TIMEZONE VALIDATOR BANNER ---
+  </script>
+  <script>
+    // --- LIVE EAST AFRICA CLOCK DISPLAY COUNTDOWN ENGINE ---
     function enforceSystemClockStatus() {
       const badge = document.getElementById('statusBadge');
       if (!badge) return;
       try {
-        const timeString = new Intl.DateTimeFormat('en-US', {
-          timeZone: 'Africa/Nairobi',
-          hour: 'numeric',
-          hour12: false
-        }).format(new Date());
+        const targetTimeZone = 'Africa/Nairobi';
+        const now = new Date();
         
-        const hourEAT = parseInt(timeString);
-        if (hourEAT >= 7 && hourEAT < 19) {
-          badge.innerText = "● SYSTEM OPERATIONAL [ONLINE]";
+        const eatTimeStr = new Intl.DateTimeFormat('en-US', {
+          timeZone: targetTimeZone, hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false
+        }).format(now);
+        
+        const parts = eatTimeStr.split(':');
+        const hours = parseInt(parts[0]); const minutes = parseInt(parts[1]); const seconds = parseInt(parts[2]);
+        
+        const currentTotalMinutes = (hours * 60) + minutes;
+        const openTimeMinutes = 7 * 60;   // 07:00
+        const closeTimeMinutes = 19 * 60; // 19:00
+
+        if (currentTotalMinutes >= openTimeMinutes && currentTotalMinutes < closeTimeMinutes) {
+          const minutesRemaining = closeTimeMinutes - currentTotalMinutes;
+          const countdownHours = Math.floor(minutesRemaining / 60);
+          const countdownMins = minutesRemaining % 60;
+          const countdownSecs = 59 - seconds;
+          
+          let breakdownText = "";
+          if (countdownHours > 0) breakdownText += `${countdownHours}h `;
+          breakdownText += `${countdownMins}m ${countdownSecs}s REMAINING`;
+
+          badge.innerHTML = `● SYSTEM OPERATIONAL [ONLINE] <span class="countdown-timer-span glow-cyan">CLOSING IN: ${breakdownText}</span>`;
           badge.style.borderColor = "rgba(52, 211, 153, 0.4)";
           badge.style.color = "#34d399";
           badge.style.background = "rgba(52, 211, 153, 0.05)";
         } else {
-          badge.innerText = "▲ SYSTEM STANDBY [OFFLINE]";
+          let minutesToOpen = 0;
+          if (currentTotalMinutes >= closeTimeMinutes) {
+            minutesToOpen = (24 * 60 - currentTotalMinutes) + openTimeMinutes;
+          } else {
+            minutesToOpen = openTimeMinutes - currentTotalMinutes;
+          }
+          
+          const openHours = Math.floor(minutesToOpen / 60);
+          const openMins = minutesToOpen % 60;
+          const openSecs = 59 - seconds;
+
+          badge.innerHTML = `▲ SYSTEM STANDBY [OFFLINE] <span class="countdown-timer-span glow-pink">REOPENING IN: ${openHours}h ${openMins}m ${openSecs}s</span>`;
           badge.style.borderColor = "rgba(244, 114, 182, 0.4)";
           badge.style.color = "#f472b6";
           badge.style.background = "rgba(244, 114, 182, 0.05)";
@@ -414,14 +581,133 @@
         else { logBox.innerHTML += "<br>"; currentLine++; currentChar = 0; setTimeout(executeLogTyping, 500); }
       }
     }
-    
+
+    // --- AUTOMATED INJECTOR: THERMAL PREVIEW STATEMENT PRINTER ---
     window.addEventListener('DOMContentLoaded', () => {
+      const calcBox = document.getElementById('calculator');
+      if (calcBox) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'receipt-btn';
+        btn.style.cssText = "width:100%; margin-top:12px; background:rgba(34,211,238,0.1); border:1px solid rgba(34,211,238,0.3); color:#22d3ee; font-family:'Orbitron',sans-serif; font-size:10px; font-weight:bold; padding:8px; border-radius:4px; cursor:pointer; letter-spacing:1px; text-transform:uppercase;";
+        btn.innerText = 'Generate & Print Statement';
+        btn.setAttribute('onclick', 'generateDigitalReceipt()');
+        calcBox.appendChild(btn);
+      }
+      
       executeLogTyping();
       enforceSystemClockStatus();
       calculateTotal();
-      setInterval(enforceSystemClockStatus, 60000);
+      setInterval(enforceSystemClockStatus, 1000);
     });
   </script>
-</div>
+  <!-- NO PAYMENT OVERRIDE THERMAL GENERATOR ENGINE -->
+  <script>
+    function generateDigitalReceipt() {
+      if (typeof playClick === 'function') playClick();
+
+      const bw = parseInt(document.getElementById('bwPages').value) || 0;
+      const color = parseInt(document.getElementById('colorPages').value) || 0;
+      const portal = parseInt(document.getElementById('portalFee').value) || 0;
+      const portalSelect = document.getElementById('portalFee');
+      
+      const grandTotal = (bw * 10) + (color * 20) + portal + (clickedItemsTotal || 0);
+      const now = new Date();
+      const options = { timeZone: 'Africa/Nairobi', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+      const timestampEAT = new Intl.DateTimeFormat('en-US', options).format(now).replace(',', '');
+      
+      const randomID = Math.random().toString(36).substring(2, 7).toUpperCase();
+      const txId = `KNM-${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}-${randomID}`;
+
+      let receiptHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>KENNCOM_STATEMENT_${txId}</title>
+        <style>
+          @page { size: auto; margin: 0mm; }
+          body { background-color: #fcfcfc; color: #000; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.3; padding: 20px; width: 300px; margin: 0 auto; }
+          .text-center { text-align: center; }
+          .text-right { text-align: right; }
+          .bold { font-weight: bold; }
+          .divider { border-top: 1px dashed #000; margin: 8px 0; }
+          .double-divider { border-top: 2px double #000; margin: 8px 0; }
+          table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+          td { padding: 2px 0; vertical-align: top; }
+          .header-title { font-size: 15px; font-weight: bold; letter-spacing: 1px; }
+          @media print { body { background: #fff; width: 100%; padding: 10px; } .no-print { display: none; } }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="background:#f3f4f6; padding:10px; text-align:center; margin-bottom:20px; border-radius:4px; font-family:sans-serif; border:1px solid #d1d5db;">
+          <button onclick="window.print()" style="background:#2563eb; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold; margin-right:5px;">PRINT STATEMENT</button>
+          <button onclick="window.close()" style="background:#4b5563; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">CLOSE</button>
+        </div>
+        <div class="text-center">
+          <span class="header-title">KENNCOM DIGITAL CENTRE</span><br>
+          <span>RONGO HUB, KODESH BUILDING</span><br>
+          <span>TEL: +254 746 587 495</span>
+        </div>
+        <div class="divider"></div>
+        <div>
+          <span class="bold">DOC ID :</span> ${txId}<br>
+          <span class="bold">DATE   :</span> ${timestampEAT} EAT<br>
+          <span class="bold">STATUS :</span> REQ_ESTIMATE_STATEMENT
+        </div>
+        <div class="divider"></div>
+        <table>
+          <thead><tr class="bold"><td>ITEM DESCRIPTION</td><td class="text-right">TOTAL(KES)</td></tr></thead>
+          <tbody>`;
+
+      if (bw > 0) receiptHtml += `<tr><td>${bw}x B&W Printing Pages</td><td class="text-right">${(bw * 10).toFixed(2)}</td></tr>`;
+      if (color > 0) receiptHtml += `<tr><td>${color}x Color Printing Pages</td><td class="text-right">${(color * 20).toFixed(2)}</td></tr>`;
+      if (portal > 0 && portalSelect) {
+        let pName = portalSelect.options[portalSelect.selectedIndex].text.split('(')[0].trim();
+        receiptHtml += `<tr><td>${pName} Base Fee</td><td class="text-right">${portal.toFixed(2)}</td></tr>`;
+      }
+
+      const activeNodes = document.querySelectorAll('.active-node');
+      activeNodes.forEach(node => {
+        let cleanText = node.innerText.replace(/>/g, '').split('K')[0].trim();
+        let val = parseFloat(node.getAttribute('data-val')) || 0;
+        receiptHtml += `<tr><td>${cleanText}</td><td class="text-right">${val.toFixed(2)}</td></tr>`;
+      });
+
+      if (grandTotal === 0) receiptHtml += `<tr><td colspan="2" class="text-center">[NO NODES RECORDED]</td></tr>`;
+
+      receiptHtml += `
+          </tbody>
+        </table>
+        <div class="divider"></div>
+        <table><tr class="bold" style="font-size:13px;"><td>TOTAL ESTIMATE VALUATION</td><td class="text-right">KES ${grandTotal.toLocaleString()}.00</td></tr></table>
+        <div class="divider"></div>
+        <div style="font-size:11px;">
+          <span class="bold">TAX SUMMARY ACCOUNTING:</span><br>
+          <table>
+            <tr><td>A-TAX EXEMPT (0%):</td><td class="text-right">KES ${grandTotal.toFixed(2)}</td></tr>
+            <tr><td>B-VATTABLE   (16%):</td><td class="text-right">KES 0.00</td></tr>
+          </table>
+        </div>
+        <div class="divider"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px;">
+          <div><span class="bold">E-TIMS SIGNATURE VERIFIED</span><br><span>DEVICE ID: ETIMS-M019X-2026</span><br><span>KRA DATA LINK COMPLIANT</span></div>
+          <div style="width:45px; height:45px; background:repeating-linear-gradient(45deg,#000,#000 2px,#fff 2px,#fff 4px); border:2px solid #000;"></div>
+        </div>
+        <div class="double-divider"></div>
+        <div class="text-center" style="font-size:11px;">
+          <span class="bold">STATEMENT STATEMENT FILE</span><br>
+          <span>Share this token text configuration block directly via WhatsApp link to confirm desktop queue assignments.</span><br><br>
+          <span class="bold" style="font-size:10px;">KENNCOM DIGITAL CENTRE // SYSTEM 2026</span>
+        </div>
+      </body>
+      </html>`;
+
+      try {
+        const printWindow = window.open('', '_blank', 'width=380,height=650,scrollbars=yes');
+        printWindow.document.open(); printWindow.document.write(receiptHtml); printWindow.document.close();
+        printWindow.focus();
+      } catch (e) { alert("Pop-up block intercepted. Please authorize popups."); }
+    }
+  </script>
 </body>
 </html>
