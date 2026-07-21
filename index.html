@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Customer Portal & File Upload</title>
+  <title>Kenncom Cyber - Services & Document Portal</title>
   
   <!-- Required Libraries for In-Browser File Conversions -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,98 +11,334 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
-    .container { max-width: 500px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-    h2, h3 { color: #1a1a1a; margin-top: 0; }
-    label { font-size: 0.85rem; font-weight: 600; color: #444; display: block; margin-top: 12px; }
-    input, select, button { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; margin: 0; padding: 0; color: #e2e8f0; }
     
-    .btn-wa { background-color: #25D366; color: white; border: none; font-weight: bold; cursor: pointer; }
-    .btn-upload { background-color: #0066cc; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
-    button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
-    
-    .divider { text-align: center; margin: 20px 0; border-bottom: 1px solid #eee; line-height: 0.1em; }
-    .divider span { background:#fff; padding:0 10px; color: #777; font-size: 0.85rem; }
+    header { background-color: #0b132b; color: white; padding: 30px 20px; text-align: center; border-bottom: 3px solid #00d2ff; }
+    header .logo-img { max-width: 180px; height: auto; margin-bottom: 12px; border-radius: 50%; box-shadow: 0 0 15px rgba(0, 210, 255, 0.4); }
+    header h1 { margin: 0; font-size: 1.9rem; color: #ffffff; letter-spacing: 1px; }
+    header p { margin: 6px 0 0 0; opacity: 0.9; font-size: 0.95rem; color: #00d2ff; font-weight: 500; }
 
-    .section-box { background: #f8f9fa; border: 1px dashed #bbb; padding: 15px; border-radius: 8px; margin-top: 15px; }
-    .status-msg { margin-top: 12px; font-size: 0.9rem; color: #0066cc; font-weight: 600; word-break: break-all; }
+    .main-wrapper { max-width: 900px; margin: 25px auto; padding: 0 15px; }
+    .card { background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 25px; border: 1px solid #334155; }
+
+    h2, h3 { color: #00d2ff; margin-top: 0; }
+    label { font-size: 0.85rem; font-weight: 600; color: #cbd5e1; display: block; margin-top: 12px; }
+    input, select, button { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #475569; border-radius: 6px; background-color: #0f172a; color: #fff; }
+    input:focus, select:focus { outline: none; border-color: #00d2ff; }
+    
+    .btn-login { background: linear-gradient(135deg, #0052d4, #00d2ff); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-wa { background-color: #25D366; color: white; border: none; font-weight: bold; cursor: pointer; }
+    .btn-upload { background: linear-gradient(135deg, #0052d4, #00d2ff); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
+    button:disabled { background: #475569; cursor: not-allowed; opacity: 0.6; }
+
+    /* Services Grid */
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px; }
+    .service-item { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 15px; text-align: center; }
+    .service-item h4 { margin: 0 0 8px 0; color: #38bdf8; }
+    .service-item p { margin: 0; font-size: 0.85rem; color: #94a3b8; }
+
+    /* Admission Portals Grid */
+    .portal-links-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 15px; }
+    .portal-btn { display: flex; flex-direction: column; background-color: #0f172a; border: 1px solid #00d2ff; border-radius: 8px; padding: 12px 15px; text-decoration: none; color: #38bdf8; transition: all 0.2s ease-in-out; }
+    .portal-btn:hover { background-color: #00d2ff; color: #0f172a; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 210, 255, 0.3); }
+    .portal-btn strong { font-size: 0.95rem; }
+    .portal-btn span { font-size: 0.78rem; margin-top: 4px; opacity: 0.85; color: inherit; }
+
+    /* Passport Resizer */
+    .passport-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; align-items: start; margin-top: 15px; }
+    .upload-btn-label { display: inline-block; background: linear-gradient(135deg, #0052d4, #00d2ff); color: white; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; text-align: center; width: 100%; }
+    .action-btn { width: 100%; margin-top: 15px; padding: 12px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    .action-btn:disabled { background-color: #475569; cursor: not-allowed; }
+    .preview-box { width: 100%; min-height: 220px; border: 2px dashed #475569; border-radius: 8px; display: flex; align-items: center; justify-content: center; background-color: #0f172a; overflow: hidden; }
+    #passport-canvas { max-width: 100%; max-height: 280px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
+    .download-btn { display: block; margin-top: 15px; padding: 12px; background-color: #00d2ff; color: #0f172a; text-align: center; text-decoration: none; border-radius: 6px; font-weight: bold; }
+
+    .status-msg { margin-top: 12px; font-size: 0.9rem; color: #38bdf8; font-weight: 600; word-break: break-all; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h2>Customer Portal</h2>
-  
-  <label for="custName">Full Name:</label>
-  <input type="text" id="custName" placeholder="Enter full name">
+<header>
+  <!-- Replace 'logo.jpg' with your saved image path if local, or a hosted URL -->
+  <img src="logo.jpg" alt="Kenncom Cyber Logo" class="logo-img">
+  <h1>KENNCOM CYBER</h1>
+  <p>Solutions • Security • Networks</p>
+</header>
 
-  <label for="custPhone">Phone Number:</label>
-  <input type="tel" id="custPhone" placeholder="e.g. +254712345678">
+<div class="main-wrapper">
 
-  <button class="btn-wa" onclick="sendWhatsApp()">Continue with WhatsApp</button>
-
-  <div class="divider"><span>DON'T HAVE WHATSAPP?</span></div>
-
-  <!-- Document Portal & Direct Drive Upload -->
-  <div class="section-box">
-    <h3>Upload & Convert Document</h3>
-    <p style="font-size: 0.8rem; color: #666;">Convert your file if needed, then upload it directly to our Google Drive folder.</p>
+  <!-- 1. LOGIN / SIGN-IN SECTION -->
+  <div class="card" id="loginCard">
+    <h2>Customer Login</h2>
+    <p style="font-size: 0.9rem; color: #94a3b8;">Enter your details below to access cyber services, application portals, and file upload tools.</p>
     
-    <label for="fileInput">Select File (PDF, DOCX, JPG, PNG, TXT):</label>
-    <input type="file" id="fileInput" accept=".pdf,.docx,.jpg,.jpeg,.png,.txt">
+    <label for="custName">Full Name:</label>
+    <input type="text" id="custName" placeholder="Enter full name">
 
-    <label for="convertTarget">Action / Target Format:</label>
-    <select id="convertTarget">
-      <option value="direct">Upload As-Is (No Conversion)</option>
-      <option value="pdf">Convert Image to PDF & Upload</option>
-      <option value="txt">Extract to Text & Upload</option>
-    </select>
+    <label for="custPhone">Phone Number:</label>
+    <input type="tel" id="custPhone" placeholder="e.g. +254712345678">
 
-    <button class="btn-upload" id="uploadBtn" onclick="handleFileProcessing()">Process & Upload to Drive</button>
-    <div id="status" class="status-msg"></div>
+    <button class="btn-login" onclick="loginUser()">Access Services Portal</button>
   </div>
+
+  <!-- MAIN PORTAL CONTENT (Revealed after Login) -->
+  <div id="portalContent" class="hidden">
+
+    <!-- User Header -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h3 style="margin: 0;">Welcome, <span id="displayName" style="color: #00d2ff;"></span>!</h3>
+          <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #94a3b8;">Logged in with <span id="displayPhone"></span></p>
+        </div>
+        <button onclick="logoutUser()" style="width: auto; padding: 6px 12px; font-size: 0.8rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">Change User</button>
+      </div>
+    </div>
+
+    <!-- 2. CYBER SERVICES & ADMISSION PORTALS -->
+    <div class="card">
+      <h2>Cyber Services & Portals</h2>
+      <div class="services-grid">
+        <div class="service-item">
+          <h4>Printing & Scanning</h4>
+          <p>Color & B/W printing, document scanning, and PDF compilation.</p>
+        </div>
+        <div class="service-item">
+          <h4>Format Conversion</h4>
+          <p>Instant online conversion for images, Word documents, and text files.</p>
+        </div>
+        <div class="service-item">
+          <h4>Direct Drive Upload</h4>
+          <p>Upload files straight to our cyber store folder for direct processing.</p>
+        </div>
+        <div class="service-item">
+          <h4>Passport Photo Resizer</h4>
+          <p>Format photos to standard passport dimensions with instant download.</p>
+        </div>
+      </div>
+
+      <hr style="margin: 25px 0; border: 0; border-top: 1px solid #334155;">
+
+      <!-- DIRECT ADMISSION PORTALS LINKS -->
+      <h3 style="color: #00d2ff; margin-bottom: 10px;">🎓 University & College Admission Portals</h3>
+      <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px;">Quick access to official student application and government service portals:</p>
+
+      <div class="portal-links-grid">
+        <a href="https://students.kuccps.net/" target="_blank" class="portal-btn">
+          <strong>KUCCPS Student Portal</strong>
+          <span>University & College Placement</span>
+        </a>
+
+        <a href="https://hef.co.ke/" target="_blank" class="portal-btn">
+          <strong>Higher Education Financing (HEF)</strong>
+          <span>HELB Loans & Scholarships</span>
+        </a>
+
+        <a href="https://e-citizen.go.ke/" target="_blank" class="portal-btn">
+          <strong>eCitizen Portal</strong>
+          <span>Good Conduct, Passports & Govt Services</span>
+        </a>
+
+        <a href="https://kasneb.or.ke/" target="_blank" class="portal-btn">
+          <strong>KASNEB Student Portal</strong>
+          <span>Professional Examinations Registration</span>
+        </a>
+
+        <a href="https://knec.ac.ke/" target="_blank" class="portal-btn">
+          <strong>KNEC Portal</strong>
+          <span>Exam Results & Verification</span>
+        </a>
+
+        <a href="https://hrmp.kra.go.ke/" target="_blank" class="portal-btn">
+          <strong>KRA iTax Portal</strong>
+          <span>KRA PIN & Tax Compliance</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- 3. PASSPORT PHOTO RESIZER TOOL -->
+    <div class="card">
+      <h2>📸 Passport Photo Resizer</h2>
+      <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px;">
+        Upload a photo, choose dimension specifications, resize/crop automatically, and download the formatted result.
+      </p>
+
+      <div class="passport-container">
+        <div>
+          <label for="passport-file-input" class="upload-btn-label">Choose Photo</label>
+          <input type="file" id="passport-file-input" accept="image/*" style="display: none;">
+
+          <label for="passport-spec" style="margin-top: 15px;">Target Preset:</label>
+          <select id="passport-spec">
+            <option value="600x600">Kenyan / US Passport (2 x 2 inches / 600x600 px)</option>
+            <option value="413x531">UK / EU Passport (35 x 45 mm / 413x531 px)</option>
+            <option value="350x450">Standard Visa Photo (35 x 45 mm / 350x450 px)</option>
+          </select>
+
+          <button id="process-passport-btn" class="action-btn" disabled>Resize & Generate Photo</button>
+        </div>
+
+        <div>
+          <div class="preview-box">
+            <canvas id="passport-canvas" style="display: none;"></canvas>
+            <div id="placeholder-text" style="font-size: 0.85rem; color: #64748b;">Upload an image to see preview</div>
+          </div>
+          <a id="download-passport-link" class="download-btn" style="display: none;" download="passport-photo.jpg">
+            ⬇️ Download Passport Photo
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. UPLOAD & CONVERSION TOOL SECTION -->
+    <div class="card">
+      <h3>Upload & Convert Document</h3>
+      <p style="font-size: 0.85rem; color: #94a3b8;">Select your file, choose an optional conversion format, and send it directly to our Google Drive storage.</p>
+      
+      <label for="fileInput">Select File (PDF, DOCX, JPG, PNG, TXT):</label>
+      <input type="file" id="fileInput" accept=".pdf,.docx,.jpg,.jpeg,.png,.txt">
+
+      <label for="convertTarget">Action / Target Format:</label>
+      <select id="convertTarget">
+        <option value="direct">Upload As-Is (No Conversion)</option>
+        <option value="pdf">Convert Image to PDF & Upload</option>
+        <option value="txt">Extract to Text & Upload</option>
+      </select>
+
+      <button class="btn-upload" id="uploadBtn" onclick="handleFileProcessing()">Process & Upload to Drive</button>
+      <div id="status" class="status-msg"></div>
+
+      <div style="margin-top: 20px; text-align: center;">
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">Prefer sending files directly over chat?</p>
+        <button class="btn-wa" onclick="sendWhatsApp()">Continue with WhatsApp</button>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <script>
-  // YOUR LIVE GOOGLE APPS SCRIPT WEB APP URL
+  // GOOGLE APPS SCRIPT WEB APP ENDPOINT
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTIBA2wSvQsbQyG3G6IEhUbzmOSW9-HcWrdIhR8Jf_JNRi7Oj6yH1Gn25Qk7-5jP5uSg/exec";
   
-  // Replace with your business WhatsApp phone number (include country code without +)
+  // Business WhatsApp phone number
   const BUSINESS_PHONE = "254700000000"; 
 
-  // Restore saved customer info on page load
+  // Initialize Page State
   window.onload = function() {
-    if (localStorage.getItem('savedName')) document.getElementById('custName').value = localStorage.getItem('savedName');
-    if (localStorage.getItem('savedPhone')) document.getElementById('custPhone').value = localStorage.getItem('savedPhone');
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    
+    const savedName = localStorage.getItem('savedName');
+    const savedPhone = localStorage.getItem('savedPhone');
+
+    if (savedName && savedPhone) {
+      showPortal(savedName, savedPhone);
+    }
   };
 
-  function getAndSaveUser() {
+  function loginUser() {
     const name = document.getElementById('custName').value.trim();
     const phone = document.getElementById('custPhone').value.trim();
 
     if (!name || !phone) {
-      alert("Please enter both your Name and Phone Number.");
-      return null;
+      alert("Please enter both your Name and Phone Number to log in.");
+      return;
     }
 
     localStorage.setItem('savedName', name);
     localStorage.setItem('savedPhone', phone);
-    return { name, phone };
+    showPortal(name, phone);
+  }
+
+  function logoutUser() {
+    localStorage.removeItem('savedName');
+    localStorage.removeItem('savedPhone');
+    document.getElementById('portalContent').classList.add('hidden');
+    document.getElementById('loginCard').classList.remove('hidden');
+  }
+
+  function showPortal(name, phone) {
+    document.getElementById('displayName').innerText = name;
+    document.getElementById('displayPhone').innerText = phone;
+    document.getElementById('loginCard').classList.add('hidden');
+    document.getElementById('portalContent').classList.remove('hidden');
   }
 
   function sendWhatsApp() {
-    const user = getAndSaveUser();
-    if (!user) return;
+    const name = localStorage.getItem('savedName');
+    const phone = localStorage.getItem('savedPhone');
 
-    const msg = `Hello, my name is ${user.name} (${user.phone}). I would like to send a document.`;
+    const msg = `Hello, my name is ${name} (${phone}). I would like to send a document.`;
     window.location.href = `https://wa.me/${BUSINESS_PHONE}?text=${encodeURIComponent(msg)}`;
   }
 
-  // Core Function: Uploads Blob/File to Google Drive Apps Script
+  /* --- PASSPORT PHOTO RESIZER ENGINE --- */
+  const passportFileInput = document.getElementById('passport-file-input');
+  const processPassportBtn = document.getElementById('process-passport-btn');
+  const passportSpec = document.getElementById('passport-spec');
+  const passportCanvas = document.getElementById('passport-canvas');
+  const placeholderText = document.getElementById('placeholder-text');
+  const downloadPassportLink = document.getElementById('download-passport-link');
+  const passportCtx = passportCanvas.getContext('2d');
+  let loadedPassportImage = null;
+
+  passportFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        loadedPassportImage = new Image();
+        loadedPassportImage.onload = function() {
+          processPassportBtn.disabled = false;
+          placeholderText.textContent = "Image loaded! Click 'Resize & Generate Photo' to convert.";
+        };
+        loadedPassportImage.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  processPassportBtn.addEventListener('click', () => {
+    if (!loadedPassportImage) return;
+
+    const [targetWidth, targetHeight] = passportSpec.value.split('x').map(Number);
+    passportCanvas.width = targetWidth;
+    passportCanvas.height = targetHeight;
+
+    const targetAspect = targetWidth / targetHeight;
+    const imgAspect = loadedPassportImage.width / loadedPassportImage.height;
+
+    let sourceX = 0, sourceY = 0, sourceWidth = loadedPassportImage.width, sourceHeight = loadedPassportImage.height;
+
+    if (imgAspect > targetAspect) {
+      sourceWidth = loadedPassportImage.height * targetAspect;
+      sourceX = (loadedPassportImage.width - sourceWidth) / 2;
+    } else {
+      sourceHeight = loadedPassportImage.width / targetAspect;
+      sourceY = (loadedPassportImage.height - sourceHeight) / 2;
+    }
+
+    passportCtx.drawImage(
+      loadedPassportImage, 
+      sourceX, sourceY, sourceWidth, sourceHeight, 
+      0, 0, targetWidth, targetHeight
+    );
+
+    placeholderText.style.display = 'none';
+    passportCanvas.style.display = 'block';
+
+    const dataURL = passportCanvas.toDataURL('image/jpeg', 0.95);
+    downloadPassportLink.href = dataURL;
+    downloadPassportLink.style.display = 'block';
+  });
+
+  /* --- DRIVE UPLOAD & CONVERSION ENGINE --- */
   async function uploadToGoogleDrive(fileBlob, fileName, mimeType) {
-    const user = getAndSaveUser();
-    if (!user) return;
+    const name = localStorage.getItem('savedName');
+    const phone = localStorage.getItem('savedPhone');
 
     const status = document.getElementById('status');
     const uploadBtn = document.getElementById('uploadBtn');
@@ -116,8 +352,8 @@
       const base64Data = reader.result.split(',')[1];
 
       const payload = {
-        customerName: user.name,
-        customerPhone: user.phone,
+        customerName: name,
+        customerPhone: phone,
         fileName: fileName,
         mimeType: mimeType,
         fileData: base64Data
@@ -144,11 +380,7 @@
     };
   }
 
-  // Conversion & File Processing Routing
   async function handleFileProcessing() {
-    const user = getAndSaveUser();
-    if (!user) return;
-
     const fileInput = document.getElementById('fileInput');
     const action = document.getElementById('convertTarget').value;
     const status = document.getElementById('status');
@@ -163,11 +395,9 @@
     status.innerText = "Processing file...";
 
     try {
-      // 1. Direct Upload without Conversion
       if (action === 'direct') {
         uploadToGoogleDrive(file, file.name, file.type || 'application/octet-stream');
       } 
-      // 2. Image -> PDF Conversion + Upload
       else if (action === 'pdf' && ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt)) {
         const { jsPDF } = window.jspdf;
         const reader = new FileReader();
@@ -179,14 +409,12 @@
         };
         reader.readAsDataURL(file);
       }
-      // 3. Word (.docx) -> Text Extraction + Upload
       else if (action === 'txt' && fileExt === 'docx') {
         const arrayBuffer = await file.arrayBuffer();
         const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
         const txtBlob = new Blob([result.value], { type: 'text/plain' });
         uploadToGoogleDrive(txtBlob, `${file.name.split('.')[0]}_extracted.txt`, 'text/plain');
       }
-      // 4. PDF -> Text Extraction + Upload
       else if (action === 'txt' && fileExt === 'pdf') {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -201,7 +429,6 @@
         uploadToGoogleDrive(txtBlob, `${file.name.split('.')[0]}_extracted.txt`, 'text/plain');
       } 
       else {
-        // Fallback to direct upload if selected action doesn't match input file format
         uploadToGoogleDrive(file, file.name, file.type || 'application/octet-stream');
       }
     } catch (err) {
