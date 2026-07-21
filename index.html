@@ -1,596 +1,666 @@
-<script>
-  // --- APP-WIDE STATE MANAGEMENT MATRIX VARIABLES ---
-  let clickedItemsTotal = 0;
-  let globalAudioCtx = null;
-  let activeSessionTimerIntervalId = null;
-  let totalSecondsRemainingInSession = 0;
-  let currentActiveColorState = "cyberpunk";
-  let currentScaleStepIndex = 0;
-
-  // --- ACCESSIBILITY TEXT SCALING COMPILATION CONFIG MAP ---
-  const fontScaleStepsMap = [
-    { label: "[ TEXT: 1x ]", bodySize: "11px", cardTitle: "12px", rowGap: "0.5rem 1rem" },
-    { label: "[ TEXT: 1.3x ]", bodySize: "14px", cardTitle: "15px", rowGap: "0.7rem 1.2rem" },
-    { label: "[ TEXT: 1.5x ]", bodySize: "16px", cardTitle: "17px", rowGap: "0.9rem 1.4rem" }
-  ];
-
-  // --- SERVICE RUNTIME REQUIREMENT RULES DATABASE ---
-  const serviceProtocolDatabase = {
-    "ecitizen": { time: 20, items: ["National ID Card", "Active Phone (for OTP verification)"] },
-    "kra": { time: 15, items: ["KRA PIN Certificate", "Active Email Address", "Employment P9 Form (if filing)"] },
-    "ntsa": { time: 25, items: ["Original Logbook Copy", "National ID Scan", "TIMS/E-Citizen Credentials"] },
-    "good conduct": { time: 15, items: ["Original National ID Card", "Generated DCI Invoice Printout"] },
-    "company": { time: 60, items: ["Proposed 3 Business Names", "Director ID Scans & Passport Photos", "KRA PIN Scans"] },
-    "business name": { time: 30, items: ["Proposed Name", "Owner National ID Scan"] },
-    "etims": { time: 40, items: ["KRA iTax Password", "Business Registration Certificate (Certificate of Incorporation)"] },
-    "cv": { time: 45, items: ["Previous CV Draft / Academic Certificates", "List of Professional Referees"] },
-    "resume": { time: 45, items: ["Previous CV Draft / Academic Certificates", "List of Professional Referees"] },
-    "university": { time: 30, items: ["KCSE Result Slip Scan", "National ID / Birth Certificate Scan"] },
-    "kuccps": { time: 20, items: ["KCSE Index Number", "Portal Password Token"] },
-    "helb": { time: 35, items: ["Parent ID / Death Certificate Scan", "Guarantor ID Copies", "Smart Phone Number"] },
-    "passport photo": { time: 10, items: ["Physical Presence at Rongo Hub Studio"] }
-  };
-
-  // --- CODES EXPIRY LIFE CYCLES DATABASE MAP ---
-  const validationLifespanDatabase = {
-    "compliance": "Tax Compliance Certificates (TCC) run for exactly 12 months from generation.",
-    "good conduct": "DCI Police Clearance certificates are traditionally valid for 12 months.",
-    "tims renewal": "NTSA driver license allocations require renewal loops every 1 or 3 years.",
-    "business name": "Business Name Registrations hold reservation locks for 30 days before compilation.",
-    "company reg": "CR12 company structure documents state continuous registry until share swaps happen."
-  };
-
-  // --- ACCIDENTAL DATA REFRESH PREVENTION LAYER ---
-  window.addEventListener('beforeunload', (event) => {
-    const bw = parseInt(document.getElementById('bwPages')?.value) || 0;
-    const color = parseInt(document.getElementById('colorPages')?.value) || 0;
-    const portal = parseInt(document.getElementById('portalFee')?.value) || 0;
-    if (bw > 0 || color > 0 || portal > 0 || clickedItemsTotal > 0) {
-      event.preventDefault();
-      event.returnValue = 'You have a pending estimate invoice. Are you sure you want to leave?';
-    }
-  });
-
-  // --- INTERACTIVE WEBAUDIO SYS CLICK SYNTHESIZER ---
-  function playClick() {
-    try {
-      if (!globalAudioCtx) globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
-      const osc = globalAudioCtx.createOscillator(); 
-      const gainNode = globalAudioCtx.createGain();
-      osc.type = 'triangle'; 
-      osc.frequency.setValueAtTime(140, globalAudioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(700, globalAudioCtx.currentTime + 0.02);
-      gainNode.gain.setValueAtTime(0.03, globalAudioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.03);
-      osc.connect(gainNode); 
-      gainNode.connect(globalAudioCtx.destination);
-      osc.start(); 
-      osc.stop(globalAudioCtx.currentTime + 0.04);
-    } catch (e) { console.log('Audio deferred.'); }
-  }
-
-  // --- INTERACTIVE SELECTION ITEM CLICK NODE TRACKER ---
-  function toggleItemNode(element) {
-    const value = parseInt(element.getAttribute('data-val')) || 0;
-    if (element.classList.contains('active-node')) {
-      element.classList.remove('active-node');
-      clickedItemsTotal -= value;
-    } else {
-      element.classList.add('active-node');
-      clickedItemsTotal += value;
-    }
-    
-    const searchInput = document.getElementById('cyberSearch');
-    if (searchInput && searchInput.value !== '') {
-      searchInput.value = '';
-      filterCyberNodes();
-    }
-    calculateTotal();
-  }
-
-  // --- WHOLE PAGE RECURSIVE REAL-TIME TYPEWRITER ENGINE ---
-  function initializeWholePageTypewriterEngine() {
-    const globalTypingSpeedMs = 6; 
-    let elementsToAnimateArray = [];
-
-    function recursivelyLocateTextNodes(currentNode) {
-      const blacklistedTags = ['SCRIPT', 'STYLE', 'CANVAS', 'INPUT', 'SELECT', 'TEXTAREA', 'OPTION'];
-      if (blacklistedTags.includes(currentNode.tagName)) return;
-      if (currentNode.classList && currentNode.classList.contains('price-tag')) return;
-
-      currentNode.childNodes.forEach(child => {
-        if (child.nodeType === Node.TEXT_NODE && child.nodeValue.trim().length > 0) {
-          elementsToAnimateArray.push({
-            parent: currentNode,
-            textNode: child,
-            originalRawString: child.nodeValue
-          });
-          child.nodeValue = '';
-        } else if (child.nodeType === Node.ELEMENT_NODE) {
-          recursivelyLocateTextNodes(child);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KENNCOM DIGITAL CENTRE - Operations Dashboard</title>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #080b10;
+            --bg-secondary: #0f141c;
+            --bg-card: #161b26;
+            --accent-green: #00ff66;
+            --accent-green-dim: rgba(0, 255, 102, 0.15);
+            --accent-blue: #00bfff;
+            --accent-red: #ff3366;
+            --text-main: #f0f6fc;
+            --text-muted: #8b949e;
+            --border-color: #21262d;
+            --border-highlight: #30363d;
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'Fira Code', monospace;
+            --font-scale: 1;
         }
-      });
-    }
 
-    const mainViewportWrapper = document.querySelector('.dashboard-envelope');
-    if (!mainViewportWrapper) return;
-    
-    recursivelyLocateTextNodes(mainViewportWrapper);
-
-    elementsToAnimateArray.forEach(item => {
-      let currentCharacterPointer = 0;
-      const fullStringTarget = item.originalRawString;
-      
-      function streamNextCharacter() {
-        if (currentCharacterPointer <= fullStringTarget.length) {
-          item.textNode.nodeValue = fullStringTarget.substring(0, currentCharacterPointer);
-          currentCharacterPointer++;
-          setTimeout(streamNextCharacter, globalTypingSpeedMs);
+        /* Light Theme Cycle Override */
+        body.theme-light {
+            --bg-primary: #f4f6f9;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --accent-green: #00a843;
+            --accent-green-dim: rgba(0, 168, 67, 0.15);
+            --text-main: #1c2128;
+            --text-muted: #57606a;
+            --border-color: #d0d7de;
+            --border-highlight: #afb8c1;
         }
-      }
-      streamNextCharacter();
-    });
-  }
 
-  // --- QUICK MACRO BUNDLE PRESET ENGINE ---
-  function injectBundlePresetNodes(targetServiceNames) {
-    if (typeof playClick === 'function') playClick();
-    const activeNodes = document.querySelectorAll('.active-node');
-    activeNodes.forEach(node => node.classList.remove('active-node'));
-    clickedItemsTotal = 0;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    const allItems = document.getElementsByClassName('item');
-    for (let i = 0; i < allItems.length; i++) {
-      let textContent = allItems[i].innerText.toLowerCase();
-      const matchesPreset = targetServiceNames.some(targetName => textContent.includes(targetName.toLowerCase()));
-      
-      if (matchesPreset) {
-        allItems[i].classList.add('active-node');
-        const value = parseInt(allItems[i].getAttribute('data-val')) || 0;
-        clickedItemsTotal += value;
-      }
-    }
-    calculateTotal();
-  }
+        html { font-size: calc(16px * var(--font-scale)); }
 
-  // --- GLOBAL ESTIMATE WIPE RESET MATRIX MODULE ---
-  function wipeEntireSystemEstimates() {
-    if (typeof playClick === 'function') playClick();
-    
-    if(document.getElementById('bwPages')) document.getElementById('bwPages').value = "0";
-    if(document.getElementById('colorPages')) document.getElementById('colorPages').value = "0";
-    if(document.getElementById('portalFee')) document.getElementById('portalFee').value = "0";
-    if(document.getElementById('clientMetadataName')) document.getElementById('clientMetadataName').value = "";
-    
-    const activeNodes = document.querySelectorAll('.active-node');
-    activeNodes.forEach(node => node.classList.remove('active-node'));
-    
-    clickedItemsTotal = 0;
-    calculateTotal();
-  }
-
-  // --- MATH MATRIX ENGINE & DYNAMIC TIER SCALER ---
-  function calculateTotal() {
-    const bwCount = parseInt(document.getElementById('bwPages')?.value) || 0;
-    const colorCount = parseInt(document.getElementById('colorPages')?.value) || 0;
-    const portal = parseInt(document.getElementById('portalFee')?.value) || 0;
-    const portalSelect = document.getElementById('portalFee');
-    
-    let bwPricePerPage = bwCount >= 50 ? 8 : 10;
-    let colorPricePerPage = colorCount >= 30 ? 15 : 20;
-    
-    const grandTotal = (bwCount * bwPricePerPage) + (colorCount * colorPricePerPage) + portal + clickedItemsTotal;
-    const grandTotalElem = document.getElementById('grandTotal');
-    if (grandTotalElem) grandTotalElem.innerText = grandTotal.toLocaleString();
-    
-    const activeCount = document.querySelectorAll('.active-node').length;
-    const nodeCounterElem = document.getElementById('nodeCounter');
-    if (nodeCounterElem) nodeCounterElem.innerText = activeCount > 0 ? `[ ${activeCount} NODES ]` : '';
-    
-    // --- LIVE RECEIPT COMPILATION ENGINE ---
-    let itemsList = [];
-    document.querySelectorAll('.active-node').forEach(node => {
-      let clone = node.cloneNode(true);
-      let tag = clone.querySelector('.price-tag');
-      if (tag) tag.remove();
-      let cleanText = clone.innerText.replace(/>/g, '').trim();
-      itemsList.push(cleanText);
-    });
-    
-    if (bwCount > 0) itemsList.push(`${bwCount}x B&W Printing Pages (@ KES ${bwPricePerPage}/pg)`);
-    if (colorCount > 0) itemsList.push(`${colorCount}x Color Printing Pages (@ KES ${colorPricePerPage}/pg)`);
-    if (portal > 0 && portalSelect && portalSelect.selectedIndex >= 0) {
-      itemsList.push(portalSelect.options[portalSelect.selectedIndex].text);
-    }
-
-    let message = `Hello Kenncom Digital, I want to process a transaction request:\n`;
-    if (itemsList.length > 0) {
-      message += `\n📋 SELECTED NODES:\n- ` + itemsList.join('\n- ') + `\n`;
-    }
-    message += `\n💰 TOTAL ESTIMATE: KES ${grandTotal}.`;
-    
-    const typingTextLogger = document.getElementById('typingText');
-    if (typingTextLogger) {
-      if (itemsList.length > 0) {
-        typingTextLogger.innerHTML = `<strong>RECEIPT MATRIX COMPILED:</strong><br>` + itemsList.map(i => `> ${i}`).join('<br>') + `<br><span style="color:#fb923c; font-weight:bold; display:block; margin-top:5px;">TOTAL: KES ${grandTotal.toLocaleString()}</span>`;
-      } else {
-        typingTextLogger.innerHTML = `SYSTEM BOOT COMPLETE // INITIALIZING DIR NODES...<br>PWA LOCAL CACHE SYNCHRONIZED SUCCESFULLY.`;
-      }
-    }
-
-    // --- STABLE LINK INJECTION MATRIX ROUTING CONFIG ---
-    const baseWhatsAppUrl = "https://wa.me/254700000000"; // Replace with your WhatsApp phone number
-    const linkElement = document.getElementById('secureCommsLink');
-    if (linkElement) {
-      linkElement.href = `${baseWhatsAppUrl}?text=${encodeURIComponent(message)}`;
-    }
-    
-    const dynamicQrImageElement = document.getElementById('dynamicLiveMonitorQRCode');
-    if (dynamicQrImageElement && linkElement) {
-      dynamicQrImageElement.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(linkElement.href)}`;
-    }
-
-    if (typeof evaluateServiceProtocolsAndTime === 'function') evaluateServiceProtocolsAndTime();
-    if (typeof processDocumentLifecycles === 'function') processDocumentLifecycles();
-    if (typeof backupConfigurationStateToCache === 'function') backupConfigurationStateToCache();
-  }
-
-  // --- REQUIRES PROTOCOLS MATRIX EVALUATOR ---
-  function evaluateServiceProtocolsAndTime() {
-    const reqBox = document.getElementById('requirementsBox');
-    const durationText = document.getElementById('estimatedDurationText');
-    const listContainer = document.getElementById('checklistItemsList');
-    if (!reqBox || !durationText || !listContainer) return;
-    
-    let computedTotalMinutes = 0;
-    let consolidatedRequirementsSet = new Set();
-    
-    document.querySelectorAll('.active-node').forEach(node => {
-      let cleanNodeText = node.innerText.toLowerCase();
-      Object.keys(serviceProtocolDatabase).forEach(apiKey => {
-        if (cleanNodeText.includes(apiKey)) {
-          computedTotalMinutes += serviceProtocolDatabase[apiKey].time;
-          serviceProtocolDatabase[apiKey].items.forEach(item => consolidatedRequirementsSet.add(item));
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
-      });
-    });
 
-    const bw = parseInt(document.getElementById('bwPages')?.value) || 0;
-    const color = parseInt(document.getElementById('colorPages')?.value) || 0;
-    if (bw > 0 || color > 0) {
-      computedTotalMinutes += Math.ceil((bw + color) * 0.2);
-      consolidatedRequirementsSet.add("Soft Copy Documents / Flash Drive Payloads");
-    }
-    
-    if (computedTotalMinutes > 0) {
-      reqBox.style.display = 'block';
-      durationText.innerText = computedTotalMinutes >= 60 ? `${Math.floor(computedTotalMinutes / 60)}h ${computedTotalMinutes % 60}m EST` : `${computedTotalMinutes} MINS EST`;
-      listContainer.innerHTML = '';
-      consolidatedRequirementsSet.forEach(req => {
-        listContainer.innerHTML += `<li style="margin-bottom:4px; color:#fff;">• <span style="color:#a78bfa;">${req}</span></li>`;
-      });
-    } else { reqBox.style.display = 'none'; }
-  }
-
-  // --- LIFE CYCLE REFRESH ALERTS INTERACTION ---
-  function processDocumentLifecycles() {
-    const infoBox = document.getElementById('expiryAndTokenBox');
-    const listContainer = document.getElementById('expiryMetricsList');
-    if (!infoBox || !listContainer) return;
-
-    let lifecycleMatchesFound = 0; listContainer.innerHTML = '';
-    document.querySelectorAll('.active-node').forEach(node => {
-      let textCheck = node.innerText.toLowerCase();
-      Object.keys(validationLifespanDatabase).forEach(key => {
-        if (textCheck.includes(key)) {
-          lifecycleMatchesFound++;
-          listContainer.innerHTML += `<li style="margin-bottom:4px; color:#fff;">⚡ <span style="color:#e2e8f0;">${validationLifespanDatabase[key]}</span></li>`;
+        /* Matrix Animation Canvas */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            opacity: 0.12;
+            pointer-events: none;
         }
-      });
-    });
-    infoBox.style.display = lifecycleMatchesFound > 0 ? 'block' : 'none';
-  }
 
-  // --- SMART KEYWORDS SYNONYM DICTIONARY MAPPING LOOPS ---
-  const smartSearchSynonymDictionary = {
-    "tax": ["kra", "itax", "compliance", "pin", "etims", "invoice"],
-    "pin": ["kra", "itax", "registration", "compliance"],
-    "license": ["ntsa", "tims", "logbook", "transfer", "plate", "driving"],
-    "car": ["ntsa", "tims", "logbook", "transfer", "plate", "vehicle"],
-    "school": ["kuccps", "university", "assignment", "exam", "admission", "school", "helb"],
-    "job": ["cv", "resume", "typesetting", "letter", "good conduct", "dci", "upwork", "fiverr", "linkedin"],
-    "money": ["m-pesa", "withdrawal", "deposit", "finance", "bill", "tender", "crypto", "forex"]
-  };
+        /* App Wrapper */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
 
-  function filterCyberNodes() {
-    const searchElem = document.getElementById('cyberSearch');
-    if (!searchElem) return;
-    const input = searchElem.value.toLowerCase().trim();
-    const cards = document.getElementsByClassName('cyber-card');
-    const clearBtn = document.getElementById('clearSearchBtn');
-    if (clearBtn) clearBtn.style.display = input !== '' ? 'block' : 'none';
+        /* Top Navigation Header */
+        header {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
 
-    let targetedKeywordsList = [input];
-    Object.keys(smartSearchSynonymDictionary).forEach(primaryKey => {
-      if (input.includes(primaryKey) || primaryKey.includes(input)) {
-        targetedKeywordsList = targetedKeywordsList.concat(smartSearchSynonymDictionary[primaryKey]);
-      }
-    });
+        .brand-title h1 {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            color: var(--accent-green);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-    for (let i = 0; i < cards.length; i++) {
-      const items = cards[i].getElementsByClassName('item'); 
-      let cardMatches = false;
-      for (let j = 0; j < items.length; j++) {
-        let itemText = items[j].innerText.toLowerCase();
-        let itemIsAMatch = (input === '') || targetedKeywordsList.some(kw => itemText.includes(kw));
-        if (itemIsAMatch) { items[j].style.display = ""; if (input !== '') cardMatches = true; } 
-        else { items[j].style.display = "none"; }
-      }
-      cards[i].style.display = (cardMatches || input === '') ? "" : "none";
-    }
-  }
+        .brand-title p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
 
-  // --- LEISURE SESSION RUNTIME CLOCK COUNTDOWN ---
-  function initializeLeisureCountdownTimer() {
-    if (typeof playClick === 'function') playClick();
-    if (activeSessionTimerIntervalId) clearInterval(activeSessionTimerIntervalId);
+        .top-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    const allocatedMinutes = parseInt(document.getElementById('sessionTimeDurationSelect')?.value) || 60;
-    totalSecondsRemainingInSession = allocatedMinutes * 60;
-    updateVisualSessionTimerDisplay();
+        .btn-icon {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-    activeSessionTimerIntervalId = setInterval(() => {
-      if (totalSecondsRemainingInSession > 0) {
-        totalSecondsRemainingInSession--; 
-        updateVisualSessionTimerDisplay();
-        if (totalSecondsRemainingInSession === 120) triggerTerminalAudioWarningAlert();
-      } else {
-        terminateLeisureCountdownTimer();
-        alert("TERMINAL NOTICE: Allocated leisure matrix block timeframe has elapsed.");
-      }
-    }, 1000);
-  }
+        .btn-icon:hover {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
 
-  function terminateLeisureCountdownTimer() {
-    if (typeof playClick === 'function') playClick();
-    if (activeSessionTimerIntervalId) { clearInterval(activeSessionTimerIntervalId); activeSessionTimerIntervalId = null; }
-    totalSecondsRemainingInSession = 0;
-    const displayElement = document.getElementById('sessionTimerDisplayClock');
-    if (displayElement) {
-      displayElement.innerText = "00:00:00";
-      displayElement.style.color = "#fb923c";
-    }
-  }
+        /* Main Dashboard Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+        }
 
-  function updateVisualSessionTimerDisplay() {
-    const displayElement = document.getElementById('sessionTimerDisplayClock'); if (!displayElement) return;
-    const hrs = Math.floor(totalSecondsRemainingInSession / 3600);
-    const mins = Math.floor((totalSecondsRemainingInSession % 3600) / 60);
-    const secs = totalSecondsRemainingInSession % 60;
-    displayElement.innerText = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    displayElement.style.color = totalSecondsRemainingInSession <= 120 ? "#ef4444" : (totalSecondsRemainingInSession <= 300 ? "#fb923c" : "#22d3ee");
-  }
+        /* Cards Styling */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            transition: border-color 0.2s;
+        }
 
-  function triggerTerminalAudioWarningAlert() {
-    try {
-      if (globalAudioCtx) {
-        const osc = globalAudioCtx.createOscillator(); 
-        const gainNode = globalAudioCtx.createGain();
-        osc.type = 'sawtooth'; 
-        osc.frequency.setValueAtTime(880, globalAudioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.05, globalAudioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.3);
-        osc.connect(gainNode); 
-        gainNode.connect(globalAudioCtx.destination);
-        osc.start(); 
-        osc.stop(globalAudioCtx.currentTime + 0.3);
-      }
-    } catch (e) { console.log("Warning audio fault."); }
-  }
+        .card:hover {
+            border-color: var(--border-highlight);
+        }
 
-  // --- FORM ENTRY PAYLOAD INPUT DATA SANITIZER ---
-  function sanitizeDataPayload(mode) {
-    if (typeof playClick === 'function') playClick();
-    const inputElement = document.getElementById('rawSanitizerInput'); if (!inputElement) return;
-    let currentText = inputElement.value;
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
 
-    if (mode === 'uppercase') { currentText = currentText.toUpperCase().replace(/\s+/g, ' ').trim(); } 
-    else if (mode === 'phone') {
-      let nums = currentText.replace(/\D/g, '');
-      if (nums.startsWith('254') && nums.length === 12) nums = '0' + nums.substring(3);
-      else if ((nums.startsWith('7') || nums.startsWith('1')) && nums.length === 9) nums = '0' + nums;
-      currentText = nums;
-    } 
-    else if (mode === 'clean-text') { currentText = currentText.replace(/[^\w\s-]/gi, '').replace(/\s+/g, ' ').trim(); }
-    inputElement.value = currentText;
-  }
+        .card-header h2 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-  function copySanitizedPayloadToClipboard() {
-    if (typeof playClick === 'function') playClick();
-    const input = document.getElementById('rawSanitizerInput');
-    if (!input || !input.value.trim()) { alert("TERMINAL ERROR: Sanitizer field array is currently empty."); return; }
-    navigator.clipboard.writeText(input.value).then(() => alert("SUCCESS // Cleaned string copied to system clipboard matrix.")).catch(() => alert("FAULT: Clipboard hardware access drop."));
-  }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-  // --- SYSTEM DYNAMIC THEMES & ACCESSIBILITY TEXT FLUID FONTS CYCLER ---
-  function toggleSystemUIVisualTheme() {
-    if (typeof playClick === 'function') playClick();
-    const styleRoot = document.documentElement;
-    if (currentActiveColorState === "cyberpunk") {
-      styleRoot.style.setProperty('--cyber-glow-primary', '#34d399'); 
-      styleRoot.style.setProperty('--cyber-glow-secondary', '#10b981'); 
-      styleRoot.style.setProperty('--cyber-text-accent', '#34d399');
-      currentActiveColorState = "classic-matrix";
-    } else {
-      styleRoot.style.setProperty('--cyber-glow-primary', '#f472b6'); 
-      styleRoot.style.setProperty('--cyber-glow-secondary', '#22d3ee'); 
-      styleRoot.style.setProperty('--cyber-text-accent', '#a78bfa');
-      currentActiveColorState = "cyberpunk";
-    }
-  }
+        label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
 
-  function cycleAccessibilityTextScale() {
-    if (typeof playClick === 'function') playClick();
-    currentScaleStepIndex = (currentScaleStepIndex + 1) % fontScaleStepsMap.length;
-    const config = fontScaleStepsMap[currentScaleStepIndex];
-    const scaleIndicator = document.getElementById('textScaleIndicatorNode');
-    if (scaleIndicator) scaleIndicator.innerText = config.label;
-    
-    const items = document.getElementsByClassName('item'); 
-    for (let i = 0; i < items.length; i++) items[i].style.fontSize = config.bodySize;
-    
-    const titles = document.getElementsByClassName('card-title'); 
-    for (let i = 0; i < titles.length; i++) titles[i].style.fontSize = config.cardTitle;
-    
-    const lists = document.getElementsByClassName('two-col-list'); 
-    for (let i = 0; i < lists.length; i++) lists[i].style.gap = config.rowGap;
-  }
+        input, select, textarea {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: var(--font-sans);
+            outline: none;
+            transition: border-color 0.2s;
+        }
 
-  // --- LOCAL DEPLOYMENT CACHE WRITERS ---
-  function backupConfigurationStateToCache() {
-    let checkedNodeIndexes = []; 
-    const items = document.getElementsByClassName('item');
-    for (let i = 0; i < items.length; i++) if (items[i].classList.contains('active-node')) checkedNodeIndexes.push(i);
-    const payload = {
-      bw: document.getElementById('bwPages')?.value || "0", 
-      color: document.getElementById('colorPages')?.value || "0", 
-      portal: document.getElementById('portalFee')?.value || "0", 
-      name: document.getElementById('clientMetadataName')?.value || "", 
-      nodes: checkedNodeIndexes
-    };
-    localStorage.setItem('kenncom_terminal_state', JSON.stringify(payload));
-  }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-green);
+        }
 
-  function recoverConfigurationStateFromCache() {
-    const data = localStorage.getItem('kenncom_terminal_state'); if (!data) return;
-    try {
-      const payload = JSON.parse(data);
-      if (payload.bw && document.getElementById('bwPages')) document.getElementById('bwPages').value = payload.bw;
-      if (payload.color && document.getElementById('colorPages')) document.getElementById('colorPages').value = payload.color;
-      if (payload.portal && document.getElementById('portalFee')) document.getElementById('portalFee').value = payload.portal;
-      if (payload.name && document.getElementById('clientMetadataName')) document.getElementById('clientMetadataName').value = payload.name;
-      if (payload.nodes) {
-        const items = document.getElementsByClassName('item'); clickedItemsTotal = 0;
-        payload.nodes.forEach(idx => { 
-          if (items[idx]) { 
-            items[idx].classList.add('active-node'); 
-            clickedItemsTotal += parseInt(items[idx].getAttribute('data-val')) || 0; 
-          } 
+        .btn-action {
+            background: var(--accent-green);
+            color: #000;
+            font-weight: 700;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        /* Console Output Displays */
+        .console-output {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--accent-green);
+            min-height: 60px;
+            max-height: 180px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Status Pills */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+            background: var(--accent-green-dim);
+            color: var(--accent-green);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+        }
+
+        .status-dot.offline { background: var(--accent-red); }
+
+        /* QR Module */
+        #qr-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            background: #ffffff;
+            border-radius: 8px;
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 15px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrix-canvas"></canvas>
+
+    <div class="app-container">
+        <!-- Main Top Bar Header -->
+        <header>
+            <div class="brand-title">
+                <h1><i class="fa-solid fa-terminal"></i> KENNCOM DIGITAL CENTRE</h1>
+                <p>Enterprise Operations & Cyber Utility Suite</p>
+            </div>
+            <div class="top-controls">
+                <button class="btn-icon" onclick="cycleTheme()" title="Cycle Theme"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                <button class="btn-icon" onclick="adjustTextSize(1)" title="Increase Font"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button class="btn-icon" onclick="adjustTextSize(-1)" title="Decrease Font"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <button class="btn-icon" onclick="clearLocalState()" title="Reset State"><i class="fa-solid fa-arrows-rotate"></i></button>
+            </div>
+        </header>
+
+        <!-- Main Workspace Dashboard Grid -->
+        <main class="dashboard-grid">
+
+            <!-- MODULE 1: Service Cost Estimator -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-calculator"></i> Cost Estimator</h2>
+                    <span class="status-badge"><span class="status-dot"></span>Active</span>
+                </div>
+                <div class="form-group">
+                    <label for="service-select">Select Service</label>
+                    <select id="service-select" onchange="calculateCost()">
+                        <option value="15">Document Printing / Page (KES 15)</option>
+                        <option value="50">Document Scanning (KES 50)</option>
+                        <option value="500">System Formatting & OS (KES 500)</option>
+                        <option value="300">Software Installation (KES 300)</option>
+                        <option value="1000">Cyber Consulting (KES 1000)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="service-qty">Units / Pages / Hours</label>
+                    <input type="number" id="service-qty" value="1" min="1" oninput="calculateCost()">
+                </div>
+                <div class="form-group">
+                    <label>Estimated Total</label>
+                    <div class="console-output" id="cost-display">Total: KES 15.00</div>
+                </div>
+                <button class="btn-action btn-secondary" onclick="exportEstimateWhatsApp()">
+                    <i class="fa-brands fa-whatsapp"></i> Send Quote via WhatsApp
+                </button>
+            </section>
+
+            <!-- MODULE 2: Leisure Session Tracker -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-stopwatch"></i> Session Tracker</h2>
+                    <span id="tracker-status" class="status-badge"><span class="status-dot"></span>Idle</span>
+                </div>
+                <div class="form-group">
+                    <label for="client-name">Client Identification</label>
+                    <input type="text" id="client-name" placeholder="Name or Station #">
+                </div>
+                <div class="form-group">
+                    <label for="session-duration">Duration (Minutes)</label>
+                    <input type="number" id="session-duration" value="30" step="5">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-action" style="flex: 1;" onclick="startSession()">
+                        <i class="fa-solid fa-play"></i> Start
+                    </button>
+                    <button class="btn-action btn-secondary" onclick="stopSession()">
+                        <i class="fa-solid fa-square"></i> Stop
+                    </button>
+                </div>
+                <div class="console-output" id="timer-display">Ready to track session...</div>
+            </section>
+
+            <!-- MODULE 3: Document Sanitizer Utility -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-shield-halved"></i> Data Sanitizer</h2>
+                </div>
+                <div class="form-group">
+                    <label for="raw-input">Raw Text / Sensitive Logs</label>
+                    <textarea id="raw-input" rows="3" placeholder="Paste sensitive customer text, phone numbers, or emails..."></textarea>
+                </div>
+                <button class="btn-action" onclick="runSanitizer()">
+                    <i class="fa-solid fa-filter"></i> Sanitize Redact
+                </button>
+                <div class="form-group">
+                    <label>Cleaned Output</label>
+                    <div class="console-output" id="sanitizer-output">Sanitized logs will appear here...</div>
+                </div>
+            </section>
+
+            <!-- MODULE 4: Network Diagnostic & Health Engine -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-network-wired"></i> Network Diagnostics</h2>
+                    <span id="net-badge" class="status-badge"><span class="status-dot"></span>Checking...</span>
+                </div>
+                <div class="form-group">
+                    <label>Diagnostic Logs</label>
+                    <div class="console-output" id="diag-display">Initializing diagnostic module...</div>
+                </div>
+                <button class="btn-action" onclick="runDiagnostics()">
+                    <i class="fa-solid fa-rotate"></i> Run Health Ping
+                </button>
+            </section>
+
+            <!-- MODULE 5: Dynamic WhatsApp & QR Link Engine -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-qrcode"></i> WhatsApp & QR Dispatch</h2>
+                </div>
+                <div class="form-group">
+                    <label for="target-phone">Phone Number (With Country Code)</label>
+                    <input type="text" id="target-phone" value="254700000000">
+                </div>
+                <div class="form-group">
+                    <label for="qr-message">Preset Message</label>
+                    <input type="text" id="qr-message" value="Hello KENNCOM Digital, I need support with...">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-action" style="flex: 1;" onclick="generateQR()">
+                        <i class="fa-solid fa-qrcode"></i> Generate QR
+                    </button>
+                    <button class="btn-action btn-secondary" style="flex: 1;" onclick="launchWhatsApp()">
+                        <i class="fa-brands fa-whatsapp"></i> Direct Chat
+                    </button>
+                </div>
+                <div id="qr-container" style="display: none; text-align: center; margin-top: 10px;">
+                    <div id="qr-display"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer>
+            <p>&copy; 2026 KENNCOM DIGITAL CENTRE. All Operational Rights Reserved. Integrated Local Engine.</p>
+        </footer>
+    </div>
+
+    <!-- QRCode JS API Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <!-- Integrated Core Application Engine -->
+    <script>
+        // === STATE & PERSISTENCE CONFIGURATION ===
+        const STATE_KEY = 'KENNCOM_STATE_V1';
+        let state = {
+            theme: 'dark',
+            fontScale: 1.0,
+            activeSession: null
+        };
+
+        function saveState() {
+            localStorage.setItem(STATE_KEY, JSON.stringify(state));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem(STATE_KEY);
+            if (saved) {
+                try {
+                    state = Object.assign(state, JSON.parse(saved));
+                    applyState();
+                } catch(e) { console.error('Failed restoring state', e); }
+            }
+        }
+
+        function applyState() {
+            if (state.theme === 'light') document.body.classList.add('theme-light');
+            else document.body.classList.remove('theme-light');
+            
+            document.documentElement.style.setProperty('--font-scale', state.fontScale);
+        }
+
+        function clearLocalState() {
+            localStorage.removeItem(STATE_KEY);
+            location.reload();
+        }
+
+        // === ACCESSIBILITY CONTROLS ===
+        function cycleTheme() {
+            state.theme = state.theme === 'dark' ? 'light' : 'dark';
+            applyState();
+            saveState();
+        }
+
+        function adjustTextSize(dir) {
+            state.fontScale = Math.min(Math.max(state.fontScale + (dir * 0.05), 0.85), 1.25);
+            applyState();
+            saveState();
+        }
+
+        // === MODULE 1: COST ESTIMATOR ===
+        function calculateCost() {
+            const rate = parseFloat(document.getElementById('service-select').value) || 0;
+            const qty = parseInt(document.getElementById('service-qty').value) || 0;
+            const total = rate * qty;
+            document.getElementById('cost-display').innerText = `Total Estimate: KES ${total.toFixed(2)}`;
+            return total;
+        }
+
+        function exportEstimateWhatsApp() {
+            const serviceSelect = document.getElementById('service-select');
+            const serviceName = serviceSelect.options[serviceSelect.selectedIndex].text;
+            const qty = document.getElementById('service-qty').value;
+            const total = calculateCost();
+            const phone = document.getElementById('target-phone').value;
+
+            const text = encodeURIComponent(`*KENNCOM DIGITAL ESTIMATE*\nService: ${serviceName}\nUnits: ${qty}\nTotal Cost: KES ${total.toFixed(2)}`);
+            window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+        }
+
+        // === MODULE 2: LEISURE SESSION TRACKER ===
+        let timerInterval = null;
+
+        function startSession() {
+            const client = document.getElementById('client-name').value.trim() || 'Client-Station-1';
+            const duration = parseInt(document.getElementById('session-duration').value) || 30;
+            const endTime = Date.now() + (duration * 60 * 1000);
+
+            state.activeSession = { client, endTime };
+            saveState();
+            runTimerLoop();
+        }
+
+        function stopSession() {
+            clearInterval(timerInterval);
+            state.activeSession = null;
+            saveState();
+            document.getElementById('timer-display').innerText = 'Session terminated by operator.';
+            document.getElementById('tracker-status').innerHTML = '<span class="status-dot offline"></span>Idle';
+        }
+
+        function runTimerLoop() {
+            if (!state.activeSession) return;
+            
+            document.getElementById('tracker-status').innerHTML = '<span class="status-dot"></span>Tracking';
+            clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                const remainingSecs = Math.round((state.activeSession.endTime - Date.now()) / 1000);
+                if (remainingSecs <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timer-display').innerText = `[EXPIRED] Session completed for ${state.activeSession.client}.`;
+                    state.activeSession = null;
+                    saveState();
+                } else {
+                    const mins = Math.floor(remainingSecs / 60);
+                    const secs = remainingSecs % 60;
+                    document.getElementById('timer-display').innerText = `Active Client: ${state.activeSession.client}\nTime Remaining: ${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+                }
+            }, 1000);
+        }
+
+        // === MODULE 3: DOCUMENT SANITIZER ===
+        function runSanitizer() {
+            const raw = document.getElementById('raw-input').value;
+            if(!raw) {
+                document.getElementById('sanitizer-output').innerText = 'Please enter text to sanitize.';
+                return;
+            }
+
+            // Redact emails, phone formats, and government IDs
+            const sanitized = raw
+                .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[REDACTED_EMAIL]')
+                .replace(/\b(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, '[REDACTED_PHONE]')
+                .replace(/\b\d{7,9}\b/g, '[REDACTED_ID_NUMBER]');
+
+            document.getElementById('sanitizer-output').innerText = sanitized;
+        }
+
+        // === MODULE 4: NETWORK DIAGNOSTIC ENGINE ===
+        function runDiagnostics() {
+            const display = document.getElementById('diag-display');
+            const badge = document.getElementById('net-badge');
+            
+            display.innerText = 'Ping sequence started...\nTesting local gateway connection...';
+
+            setTimeout(() => {
+                const isOnline = navigator.onLine;
+                const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                const netType = connection ? connection.effectiveType : 'unknown';
+
+                if (isOnline) {
+                    badge.innerHTML = '<span class="status-dot"></span>Online';
+                    display.innerText = `[SUCCESS] Host Online\nLatency: Nominal\nProtocol: ${window.location.protocol}\nType: ${netType.toUpperCase()}\nUser Agent: ${navigator.userAgent.slice(0, 40)}...`;
+                } else {
+                    badge.innerHTML = '<span class="status-dot offline"></span>Offline';
+                    display.innerText = `[ERROR] System Offline\nNo connection to external network gateways.`;
+                }
+            }, 500);
+        }
+
+        // === MODULE 5: WHATSAPP & QR GENERATOR ===
+        let qrcodeObj = null;
+
+        function generateQR() {
+            const phone = document.getElementById('target-phone').value.trim();
+            const msg = encodeURIComponent(document.getElementById('qr-message').value);
+            const waUrl = `https://wa.me/${phone}?text=${msg}`;
+
+            const container = document.getElementById('qr-container');
+            const display = document.getElementById('qr-display');
+            
+            display.innerHTML = '';
+            container.style.display = 'block';
+
+            qrcodeObj = new QRCode(display, {
+                text: waUrl,
+                width: 128,
+                height: 128,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        function launchWhatsApp() {
+            const phone = document.getElementById('target-phone').value.trim();
+            const msg = encodeURIComponent(document.getElementById('qr-message').value);
+            window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+        }
+
+        // === MATRIX CANVAS ANIMATION ENGINE ===
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const matrixChars = '0123456789ABCDEFKENNCOM@#$%&*';
+        const fontSize = 14;
+        let columns = Math.floor(canvas.width / fontSize);
+        let drops = Array(columns).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(8, 11, 16, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff66';
+            ctx.font = `${fontSize}px 'Fira Code', monospace`;
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 33);
+
+        // === INITIALIZATION ===
+        window.addEventListener('load', () => {
+            loadState();
+            calculateCost();
+            runDiagnostics();
+            if (state.activeSession) runTimerLoop();
         });
-      }
-      calculateTotal();
-    } catch (e) { console.log("Cache read skipped."); }
-  }
-
-  function executeClipboardTokenSnapshotCopy() {
-    if (typeof playClick === 'function') playClick();
-    const sumElem = document.getElementById('grandTotal');
-    const sum = sumElem ? sumElem.innerText : "0"; 
-    let shortItems = [];
-    
-    document.querySelectorAll('.active-node').forEach(node => { 
-      let clone = node.cloneNode(true);
-      let tag = clone.querySelector('.price-tag');
-      if (tag) tag.remove();
-      shortItems.push(clone.innerText.replace(/>/g, '').trim());
-    });
-    
-    const bwVal = parseInt(document.getElementById('bwPages')?.value) || 0;
-    const colorVal = parseInt(document.getElementById('colorPages')?.value) || 0;
-
-    if (shortItems.length === 0 && bwVal === 0 && colorVal === 0) { 
-      alert("TERMINAL ERROR: Select a directory node or enter pages first."); 
-      return; 
-    }
-    let token = `KENNCOM REF // Items: ${shortItems.slice(0, 3).join(', ')}${shortItems.length > 3 ? '...' : ''} | Total Valuation: KES ${sum}.`;
-    navigator.clipboard.writeText(token).then(() => alert("SUCCESS // Reference code token profile copied.")).catch(() => alert("HARDWARE FAULT."));
-  }
-
-  // --- TERMINAL LATENCY DIAGNOSTIC MODULE ---
-  function triggerNetworkDiagnosticPing() {
-    if (typeof playClick === 'function') playClick();
-    const pingText = document.getElementById('pingStatusText'); 
-    const progressBar = document.getElementById('pingProgressBar');
-    if (!pingText || !progressBar) return;
-    
-    pingText.innerText = "PINGING MATRIX NODE..."; 
-    pingText.style.color = "#fb923c"; 
-    progressBar.style.width = "20%";
-    
-    setTimeout(() => {
-      progressBar.style.width = "60%";
-      setTimeout(() => { 
-        progressBar.style.width = "100%"; 
-        pingText.innerText = "CONNECTED // 12ms LATENCY"; 
-        pingText.style.color = "#34d399"; 
-      }, 400);
-    }, 300);
-  }
-
-  function forceResetSearch() { 
-    const searchInput = document.getElementById('cyberSearch'); 
-    if (searchInput) { searchInput.value = ''; filterCyberNodes(); } 
-  }
-
-  // --- MATRIX DIGITAL RAIN EFFECTS ACCELERATOR ENGINE ---
-  function initMatrixBackgroundEngine() {
-    const canvas = document.getElementById('matrixCanvas'); if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    
-    function resizeCanvas() { 
-      canvas.width = window.innerWidth; 
-      canvas.height = window.innerHeight; 
-    }
-    resizeCanvas(); 
-    window.addEventListener('resize', resizeCanvas);
-    
-    const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZMODULESYSTEMCORE"; 
-    const fontSize = 14; 
-    const columns = Math.floor((canvas.width || window.innerWidth) / fontSize); 
-    const rainDrops = Array(columns).fill(1);
-    
-    function drawMatrixFrame() {
-      ctx.fillStyle = 'rgba(8, 8, 10, 0.05)'; 
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = currentActiveColorState === "cyberpunk" ? '#f472b6' : '#34d399'; 
-      ctx.font = fontSize + 'px monospace';
-      
-      for (let i = 0; i < rainDrops.length; i++) {
-        const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length)); 
-        ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
-        if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) rainDrops[i] = 0;
-        rainDrops[i]++;
-      }
-    }
-    setInterval(drawMatrixFrame, 33);
-  }
-
-  // --- LIFE CYCLE INITIALIZER APP LINK SYSTEM CORES ---
-  window.addEventListener('DOMContentLoaded', () => {
-    initMatrixBackgroundEngine();
-    recoverConfigurationStateFromCache();
-    calculateTotal();
-    
-    // LAUNCH MASTER AUTO-TYPER ENGINE
-    initializeWholePageTypewriterEngine();
-    
-    const statusBadge = document.getElementById('statusBadge'); 
-    if (statusBadge) statusBadge.innerText = "SYSTEM ACTIVE // RUNTIME SECURE";
-    
-    window.addEventListener('offline', () => { 
-      const alertBanner = document.getElementById('offlineHardwareBannerAlert'); 
-      if (alertBanner) alertBanner.style.display = 'block'; 
-    });
-    
-    window.addEventListener('online', () => { 
-      const alertBanner = document.getElementById('offlineHardwareBannerAlert'); 
-      if (alertBanner) alertBanner.style.display = 'none'; 
-    });
-    
-    if (!navigator.onLine) { 
-      const alertBanner = document.getElementById('offlineHardwareBannerAlert'); 
-      if (alertBanner) alertBanner.style.display = 'block'; 
-    }
-  });
-</script>
+    </script>
+</body>
+</html>
