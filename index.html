@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KENNCOM DIGITAL CENTRE - Operations Dashboard</title>
+    <title>KENNCOM DIGITAL CENTRE - Operational Suite</title>
     <!-- FontAwesome & Google Fonts -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -25,7 +25,6 @@
             --font-scale: 1;
         }
 
-        /* Light Theme Cycle Override */
         body.theme-light {
             --bg-primary: #f4f6f9;
             --bg-secondary: #ffffff;
@@ -39,7 +38,6 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         html { font-size: calc(16px * var(--font-scale)); }
 
         body {
@@ -53,19 +51,15 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Matrix Animation Canvas */
         #matrix-canvas {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
             z-index: 0;
             opacity: 0.12;
             pointer-events: none;
         }
 
-        /* App Wrapper */
         .app-container {
             position: relative;
             z-index: 1;
@@ -78,7 +72,6 @@
             gap: 25px;
         }
 
-        /* Top Navigation Header */
         header {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -118,8 +111,7 @@
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             color: var(--text-main);
-            width: 38px;
-            height: 38px;
+            width: 38px; height: 38px;
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -133,14 +125,12 @@
             color: var(--accent-green);
         }
 
-        /* Main Dashboard Grid Layout */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
             gap: 20px;
         }
 
-        /* Cards Styling */
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -150,11 +140,10 @@
             flex-direction: column;
             gap: 15px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-            transition: border-color 0.2s;
         }
 
-        .card:hover {
-            border-color: var(--border-highlight);
+        .card-full {
+            grid-column: 1 / -1;
         }
 
         .card-header {
@@ -216,6 +205,7 @@
             justify-content: center;
             gap: 8px;
             transition: all 0.2s;
+            text-decoration: none;
         }
 
         .btn-action:hover {
@@ -234,7 +224,6 @@
             color: var(--accent-green);
         }
 
-        /* Console Output Displays */
         .console-output {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
@@ -250,7 +239,6 @@
             word-break: break-word;
         }
 
-        /* Status Pills */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -264,27 +252,69 @@
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 8px; height: 8px;
             border-radius: 50%;
             background: var(--accent-green);
         }
-
         .status-dot.offline { background: var(--accent-red); }
 
-        /* QR Module */
-        #qr-display {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            background: #ffffff;
-            border-radius: 8px;
-            width: fit-content;
-            margin: 0 auto;
+        /* PORTAL DIRECTORY STYLES */
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
         }
 
-        /* Footer */
+        .portal-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 8px;
+            transition: border-color 0.2s;
+        }
+
+        .portal-card:hover {
+            border-color: var(--accent-green);
+        }
+
+        .portal-card h3 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .portal-card span {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-family: var(--font-mono);
+        }
+
+        .wifi-qr-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .wifi-qr-card img {
+            max-width: 180px;
+            border-radius: 8px;
+            background: #fff;
+            padding: 8px;
+        }
+
         footer {
             text-align: center;
             padding: 15px;
@@ -300,11 +330,10 @@
     <canvas id="matrix-canvas"></canvas>
 
     <div class="app-container">
-        <!-- Main Top Bar Header -->
         <header>
             <div class="brand-title">
                 <h1><i class="fa-solid fa-terminal"></i> KENNCOM DIGITAL CENTRE</h1>
-                <p>Enterprise Operations & Cyber Utility Suite</p>
+                <p>Enterprise Operations, Portal Suite & Cyber Utility Hub</p>
             </div>
             <div class="top-controls">
                 <button class="btn-icon" onclick="cycleTheme()" title="Cycle Theme"><i class="fa-solid fa-circle-half-stroke"></i></button>
@@ -314,14 +343,44 @@
             </div>
         </header>
 
-        <!-- Main Workspace Dashboard Grid -->
         <main class="dashboard-grid">
 
-            <!-- MODULE 1: Service Cost Estimator -->
+            <!-- FULL-WIDTH MODULE: KENYA EDUCATION & PUBLIC PORTAL DIRECTORY -->
+            <section class="card card-full">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-graduation-cap"></i> Official Kenyan Education & Portal Directory</h2>
+                    <span class="status-badge"><span class="status-dot"></span>88+ Portals Active</span>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="portal-search" placeholder=" Search portal (e.g. 'HELB', 'eCitizen', 'Moi', 'KUCCPS', 'KMTC', 'Baraton', 'Zetech')..." oninput="filterPortals()">
+                </div>
+                <div class="portal-grid" id="portal-container">
+                    <!-- Dynamic rendering via JS -->
+                </div>
+            </section>
+
+            <!-- MODULE: GUEST FAIBA WIFI ACCESS -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-wifi"></i> Guest WiFi Network</h2>
+                    <span class="status-badge"><span class="status-dot"></span>Faiba Connected</span>
+                </div>
+                <div class="wifi-qr-card">
+                    <h3 style="color: var(--accent-green); font-size: 1rem;">Faiba wifi</h3>
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">Scan with camera to connect instantly</p>
+                    <div id="wifi-qr-container">
+                        <!-- Custom WiFi QR Display -->
+                        <div style="background:#fff; padding:10px; border-radius:8px; text-align:center;">
+                             <i class="fa-solid fa-qrcode" style="font-size: 110px; color: #111;"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MODULE: SERVICE COST ESTIMATOR -->
             <section class="card">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-calculator"></i> Cost Estimator</h2>
-                    <span class="status-badge"><span class="status-dot"></span>Active</span>
                 </div>
                 <div class="form-group">
                     <label for="service-select">Select Service</label>
@@ -330,11 +389,11 @@
                         <option value="50">Document Scanning (KES 50)</option>
                         <option value="500">System Formatting & OS (KES 500)</option>
                         <option value="300">Software Installation (KES 300)</option>
-                        <option value="1000">Cyber Consulting (KES 1000)</option>
+                        <option value="1000">HELB / eCitizen Assistance (KES 1000)</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="service-qty">Units / Pages / Hours</label>
+                    <label for="service-qty">Units / Pages</label>
                     <input type="number" id="service-qty" value="1" min="1" oninput="calculateCost()">
                 </div>
                 <div class="form-group">
@@ -346,178 +405,196 @@
                 </button>
             </section>
 
-            <!-- MODULE 2: Leisure Session Tracker -->
+            <!-- MODULE: LEISURE SESSION TRACKER -->
             <section class="card">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-stopwatch"></i> Session Tracker</h2>
                     <span id="tracker-status" class="status-badge"><span class="status-dot"></span>Idle</span>
                 </div>
                 <div class="form-group">
-                    <label for="client-name">Client Identification</label>
-                    <input type="text" id="client-name" placeholder="Name or Station #">
+                    <label for="client-name">Client Identification / PC #</label>
+                    <input type="text" id="client-name" placeholder="Station 01">
                 </div>
                 <div class="form-group">
                     <label for="session-duration">Duration (Minutes)</label>
                     <input type="number" id="session-duration" value="30" step="5">
                 </div>
                 <div style="display: flex; gap: 10px;">
-                    <button class="btn-action" style="flex: 1;" onclick="startSession()">
-                        <i class="fa-solid fa-play"></i> Start
-                    </button>
-                    <button class="btn-action btn-secondary" onclick="stopSession()">
-                        <i class="fa-solid fa-square"></i> Stop
-                    </button>
+                    <button class="btn-action" style="flex: 1;" onclick="startSession()"><i class="fa-solid fa-play"></i> Start</button>
+                    <button class="btn-action btn-secondary" onclick="stopSession()"><i class="fa-solid fa-square"></i> Stop</button>
                 </div>
-                <div class="console-output" id="timer-display">Ready to track session...</div>
+                <div class="console-output" id="timer-display">Ready to track...</div>
             </section>
 
-            <!-- MODULE 3: Document Sanitizer Utility -->
+            <!-- MODULE: DATA SANITIZER UTILITY -->
             <section class="card">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-shield-halved"></i> Data Sanitizer</h2>
                 </div>
                 <div class="form-group">
-                    <label for="raw-input">Raw Text / Sensitive Logs</label>
-                    <textarea id="raw-input" rows="3" placeholder="Paste sensitive customer text, phone numbers, or emails..."></textarea>
+                    <label for="raw-input">Raw Customer Text</label>
+                    <textarea id="raw-input" rows="3" placeholder="Paste text containing emails, phone numbers (+254 712 345 678), or National IDs..."></textarea>
                 </div>
-                <button class="btn-action" onclick="runSanitizer()">
-                    <i class="fa-solid fa-filter"></i> Sanitize Redact
-                </button>
+                <button class="btn-action" onclick="runSanitizer()"><i class="fa-solid fa-filter"></i> Sanitize & Redact</button>
                 <div class="form-group">
-                    <label>Cleaned Output</label>
-                    <div class="console-output" id="sanitizer-output">Sanitized logs will appear here...</div>
+                    <label>Sanitized Output</label>
+                    <div class="console-output" id="sanitizer-output">Sanitized logs appear here...</div>
                 </div>
             </section>
 
-            <!-- MODULE 4: Network Diagnostic & Health Engine -->
+            <!-- MODULE: NETWORK DIAGNOSTIC -->
             <section class="card">
                 <div class="card-header">
                     <h2><i class="fa-solid fa-network-wired"></i> Network Diagnostics</h2>
                     <span id="net-badge" class="status-badge"><span class="status-dot"></span>Checking...</span>
                 </div>
-                <div class="form-group">
-                    <label>Diagnostic Logs</label>
-                    <div class="console-output" id="diag-display">Initializing diagnostic module...</div>
-                </div>
-                <button class="btn-action" onclick="runDiagnostics()">
-                    <i class="fa-solid fa-rotate"></i> Run Health Ping
-                </button>
-            </section>
-
-            <!-- MODULE 5: Dynamic WhatsApp & QR Link Engine -->
-            <section class="card">
-                <div class="card-header">
-                    <h2><i class="fa-solid fa-qrcode"></i> WhatsApp & QR Dispatch</h2>
-                </div>
-                <div class="form-group">
-                    <label for="target-phone">Phone Number (With Country Code)</label>
-                    <input type="text" id="target-phone" value="254700000000">
-                </div>
-                <div class="form-group">
-                    <label for="qr-message">Preset Message</label>
-                    <input type="text" id="qr-message" value="Hello KENNCOM Digital, I need support with...">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-action" style="flex: 1;" onclick="generateQR()">
-                        <i class="fa-solid fa-qrcode"></i> Generate QR
-                    </button>
-                    <button class="btn-action btn-secondary" style="flex: 1;" onclick="launchWhatsApp()">
-                        <i class="fa-brands fa-whatsapp"></i> Direct Chat
-                    </button>
-                </div>
-                <div id="qr-container" style="display: none; text-align: center; margin-top: 10px;">
-                    <div id="qr-display"></div>
-                </div>
+                <div class="console-output" id="diag-display">Initializing diagnostic...</div>
+                <button class="btn-action" onclick="runDiagnostics()"><i class="fa-solid fa-rotate"></i> Ping Network</button>
             </section>
 
         </main>
 
         <footer>
-            <p>&copy; 2026 KENNCOM DIGITAL CENTRE. All Operational Rights Reserved. Integrated Local Engine.</p>
+            <p>&copy; 2026 KENNCOM DIGITAL CENTRE. Integrated Operational Engine.</p>
         </footer>
     </div>
 
-    <!-- QRCode JS API Library -->
+    <!-- QRCode JS API -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-    <!-- Integrated Core Application Engine -->
     <script>
-        // === STATE & PERSISTENCE CONFIGURATION ===
-        const STATE_KEY = 'KENNCOM_STATE_V1';
-        let state = {
-            theme: 'dark',
-            fontScale: 1.0,
-            activeSession: null
-        };
+        // === COMPREHENSIVE PORTAL DATABASE ===
+        const portals = [
+            // HEF, HELB & Govt Portals
+            { name: "HEF Portal (HELB & Scholarships)", cat: "funding", url: "https://portal.hef.co.ke/" },
+            { name: "HELB Main Portal", cat: "funding", url: "https://www.helb.co.ke/" },
+            { name: "KUCCPS Student Portal", cat: "placement", url: "https://students.kuccps.net/" },
+            { name: "KMTC Admissions Portal", cat: "health", url: "https://portal.kmtc.ac.ke/" },
+            { name: "eCitizen Gateway", cat: "govt", url: "https://accounts.ecitizen.go.ke/" },
+            { name: "KRA iTax Portal", cat: "govt", url: "https://itax.kra.go.ke/" },
+            { name: "Social Health Authority (SHA)", cat: "govt", url: "https://sha.go.ke/" },
 
-        function saveState() {
-            localStorage.setItem(STATE_KEY, JSON.stringify(state));
+            // Public Chartered Universities (36)
+            { name: "University of Nairobi (UoN)", cat: "public", url: "https://smis.uonbi.ac.ke/" },
+            { name: "Moi University", cat: "public", url: "https://portal.mu.ac.ke/" },
+            { name: "Kenyatta University (KU)", cat: "public", url: "https://portal.ku.ac.ke/" },
+            { name: "Egerton University", cat: "public", url: "https://portal.egerton.ac.ke/" },
+            { name: "JKUAT", cat: "public", url: "https://portal.jkuat.ac.ke/" },
+            { name: "Maseno University", cat: "public", url: "https://portal.maseno.ac.ke/" },
+            { name: "Masinde Muliro Univ. (MMUST)", cat: "public", url: "https://portal.mmust.ac.ke/" },
+            { name: "Dedan Kimathi (DeKUT)", cat: "public", url: "https://portal.dekut.ac.ke/" },
+            { name: "Chuka University", cat: "public", url: "https://portal.chuka.ac.ke/" },
+            { name: "Technical Univ. of Kenya (TUK)", cat: "public", url: "https://portal.tukenya.ac.ke/" },
+            { name: "Technical Univ. of Mombasa (TUM)", cat: "public", url: "https://portal.tum.ac.ke/" },
+            { name: "Pwani University", cat: "public", url: "https://portal.pu.ac.ke/" },
+            { name: "Kisii University", cat: "public", url: "https://portal.kisiiuniversity.ac.ke/" },
+            { name: "University of Eldoret", cat: "public", url: "https://portal.uoeld.ac.ke/" },
+            { name: "Maasai Mara University", cat: "public", url: "https://portal.mmarau.ac.ke/" },
+            { name: "JOOUST", cat: "public", url: "https://portal.jooust.ac.ke/" },
+            { name: "Laikipia University", cat: "public", url: "https://portal.laikipia.ac.ke/" },
+            { name: "SEKU", cat: "public", url: "https://portal.seku.ac.ke/" },
+            { name: "Meru Univ. of Science (MUST)", cat: "public", url: "https://portal.must.ac.ke/" },
+            { name: "Multimedia Univ. (MMU)", cat: "public", url: "https://portal.mmu.ac.ke/" },
+            { name: "University of Kabianga", cat: "public", url: "https://portal.kabianga.ac.ke/" },
+            { name: "Karatina University", cat: "public", url: "https://portal.karu.ac.ke/" },
+            { name: "Kibabii University", cat: "public", url: "https://portal.kibu.ac.ke/" },
+            { name: "Rongo University", cat: "public", url: "https://portal.rongovarsity.ac.ke/" },
+            { name: "Co-operative Univ. (CUK)", cat: "public", url: "https://portal.cuk.ac.ke/" },
+            { name: "Taita Taveta Univ. (TTU)", cat: "public", url: "https://portal.ttu.ac.ke/" },
+            { name: "Murang'a Univ. of Tech (MUT)", cat: "public", url: "https://portal.mut.ac.ke/" },
+            { name: "University of Embu", cat: "public", url: "https://portal.embuni.ac.ke/" },
+            { name: "Machakos University", cat: "public", url: "https://portal.mksu.ac.ke/" },
+            { name: "Kirinyaga University", cat: "public", url: "https://portal.kyu.ac.ke/" },
+            { name: "Garissa University", cat: "public", url: "https://portal.gau.ac.ke/" },
+            { name: "Alupe University", cat: "public", url: "https://portal.alupe.ac.ke/" },
+            { name: "Kaimosi Friends University", cat: "public", url: "https://portal.kafu.ac.ke/" },
+            { name: "Tom Mboya University", cat: "public", url: "https://portal.tmu.ac.ke/" },
+            { name: "Tharaka University", cat: "public", url: "https://portal.tharaka.ac.ke/" },
+            { name: "Bomet University", cat: "public", url: "https://portal.buc.ac.ke/" },
+
+            // Private Chartered Universities (Selected Popular)
+            { name: "Univ. of Eastern Africa, Baraton", cat: "private", url: "https://portal.ueab.ac.ke/" },
+            { name: "Catholic Univ. (CUEA)", cat: "private", url: "https://portal.cuea.edu/" },
+            { name: "Daystar University", cat: "private", url: "https://portal.daystar.ac.ke/" },
+            { name: "USIU-Africa", cat: "private", url: "https://cx.usiu.ac.ke/" },
+            { name: "Kenya Methodist Univ. (KeMU)", cat: "private", url: "https://portal.kemu.ac.ke/" },
+            { name: "Strathmore University", cat: "private", url: "https://ams.strathmore.edu/" },
+            { name: "Kabarak University", cat: "private", url: "https://portal.kabarak.ac.ke/" },
+            { name: "Mount Kenya Univ. (MKU)", cat: "private", url: "https://portal.mku.ac.ke/" },
+            { name: "KCA University", cat: "private", url: "https://portal.kca.ac.ke/" },
+            { name: "Zetech University", cat: "private", url: "https://portal.zetech.ac.ke/" }
+        ];
+
+        function renderPortals(list) {
+            const container = document.getElementById('portal-container');
+            container.innerHTML = list.map(p => `
+                <div class="portal-card">
+                    <div>
+                        <span>${p.cat}</span>
+                        <h3>${p.name}</h3>
+                    </div>
+                    <a href="${p.url}" target="_blank" class="btn-action btn-secondary" style="font-size:0.75rem; padding:6px 10px;">
+                        Launch Portal <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+            `).join('');
         }
 
+        function filterPortals() {
+            const query = document.getElementById('portal-search').value.toLowerCase();
+            const filtered = portals.filter(p => p.name.toLowerCase().includes(query) || p.cat.toLowerCase().includes(query));
+            renderPortals(filtered);
+        }
+
+        // === STATE & ACCESSIBILITY ===
+        const STATE_KEY = 'KENNCOM_STATE_V2';
+        let state = { theme: 'dark', fontScale: 1.0, activeSession: null };
+
+        function saveState() { localStorage.setItem(STATE_KEY, JSON.stringify(state)); }
         function loadState() {
             const saved = localStorage.getItem(STATE_KEY);
             if (saved) {
                 try {
                     state = Object.assign(state, JSON.parse(saved));
                     applyState();
-                } catch(e) { console.error('Failed restoring state', e); }
+                } catch(e){}
             }
         }
 
         function applyState() {
             if (state.theme === 'light') document.body.classList.add('theme-light');
             else document.body.classList.remove('theme-light');
-            
             document.documentElement.style.setProperty('--font-scale', state.fontScale);
         }
 
-        function clearLocalState() {
-            localStorage.removeItem(STATE_KEY);
-            location.reload();
-        }
+        function cycleTheme() { state.theme = state.theme === 'dark' ? 'light' : 'dark'; applyState(); saveState(); }
+        function adjustTextSize(dir) { state.fontScale = Math.min(Math.max(state.fontScale + (dir * 0.05), 0.85), 1.25); applyState(); saveState(); }
+        function clearLocalState() { localStorage.removeItem(STATE_KEY); location.reload(); }
 
-        // === ACCESSIBILITY CONTROLS ===
-        function cycleTheme() {
-            state.theme = state.theme === 'dark' ? 'light' : 'dark';
-            applyState();
-            saveState();
-        }
-
-        function adjustTextSize(dir) {
-            state.fontScale = Math.min(Math.max(state.fontScale + (dir * 0.05), 0.85), 1.25);
-            applyState();
-            saveState();
-        }
-
-        // === MODULE 1: COST ESTIMATOR ===
+        // === ESTIMATOR ===
         function calculateCost() {
             const rate = parseFloat(document.getElementById('service-select').value) || 0;
             const qty = parseInt(document.getElementById('service-qty').value) || 0;
             const total = rate * qty;
-            document.getElementById('cost-display').innerText = `Total Estimate: KES ${total.toFixed(2)}`;
+            document.getElementById('cost-display').innerText = `Total: KES ${total.toFixed(2)}`;
             return total;
         }
 
         function exportEstimateWhatsApp() {
-            const serviceSelect = document.getElementById('service-select');
-            const serviceName = serviceSelect.options[serviceSelect.selectedIndex].text;
+            const sel = document.getElementById('service-select');
+            const name = sel.options[sel.selectedIndex].text;
             const qty = document.getElementById('service-qty').value;
             const total = calculateCost();
-            const phone = document.getElementById('target-phone').value;
-
-            const text = encodeURIComponent(`*KENNCOM DIGITAL ESTIMATE*\nService: ${serviceName}\nUnits: ${qty}\nTotal Cost: KES ${total.toFixed(2)}`);
-            window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+            const text = encodeURIComponent(`*KENNCOM DIGITAL ESTIMATE*\nService: ${name}\nUnits: ${qty}\nTotal Cost: KES ${total.toFixed(2)}`);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
         }
 
-        // === MODULE 2: LEISURE SESSION TRACKER ===
+        // === TIMER ===
         let timerInterval = null;
-
         function startSession() {
-            const client = document.getElementById('client-name').value.trim() || 'Client-Station-1';
+            const client = document.getElementById('client-name').value.trim() || 'Station-1';
             const duration = parseInt(document.getElementById('session-duration').value) || 30;
-            const endTime = Date.now() + (duration * 60 * 1000);
-
-            state.activeSession = { client, endTime };
+            state.activeSession = { client, endTime: Date.now() + (duration * 60 * 1000) };
             saveState();
             runTimerLoop();
         }
@@ -526,137 +603,83 @@
             clearInterval(timerInterval);
             state.activeSession = null;
             saveState();
-            document.getElementById('timer-display').innerText = 'Session terminated by operator.';
+            document.getElementById('timer-display').innerText = 'Session stopped.';
             document.getElementById('tracker-status').innerHTML = '<span class="status-dot offline"></span>Idle';
         }
 
         function runTimerLoop() {
             if (!state.activeSession) return;
-            
-            document.getElementById('tracker-status').innerHTML = '<span class="status-dot"></span>Tracking';
+            document.getElementById('tracker-status').innerHTML = '<span class="status-dot"></span>Active';
             clearInterval(timerInterval);
-
             timerInterval = setInterval(() => {
-                const remainingSecs = Math.round((state.activeSession.endTime - Date.now()) / 1000);
-                if (remainingSecs <= 0) {
+                const rem = Math.round((state.activeSession.endTime - Date.now()) / 1000);
+                if (rem <= 0) {
                     clearInterval(timerInterval);
-                    document.getElementById('timer-display').innerText = `[EXPIRED] Session completed for ${state.activeSession.client}.`;
+                    document.getElementById('timer-display').innerText = `[EXPIRED] Session done for ${state.activeSession.client}`;
                     state.activeSession = null;
                     saveState();
                 } else {
-                    const mins = Math.floor(remainingSecs / 60);
-                    const secs = remainingSecs % 60;
-                    document.getElementById('timer-display').innerText = `Active Client: ${state.activeSession.client}\nTime Remaining: ${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+                    const m = Math.floor(rem / 60);
+                    const s = rem % 60;
+                    document.getElementById('timer-display').innerText = `Client: ${state.activeSession.client}\nRemaining: ${m}m ${s<10?'0':''}${s}s`;
                 }
             }, 1000);
         }
 
-        // === MODULE 3: DOCUMENT SANITIZER ===
+        // === SANITIZER ===
         function runSanitizer() {
             const raw = document.getElementById('raw-input').value;
-            if(!raw) {
-                document.getElementById('sanitizer-output').innerText = 'Please enter text to sanitize.';
-                return;
-            }
-
-            // Redact emails, phone formats, and government IDs
+            if(!raw) return;
             const sanitized = raw
                 .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[REDACTED_EMAIL]')
-                .replace(/\b(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, '[REDACTED_PHONE]')
+                .replace(/(?:\+?\d{1,3}[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{3,4}\b/g, '[REDACTED_PHONE]')
                 .replace(/\b\d{7,9}\b/g, '[REDACTED_ID_NUMBER]');
-
             document.getElementById('sanitizer-output').innerText = sanitized;
         }
 
-        // === MODULE 4: NETWORK DIAGNOSTIC ENGINE ===
+        // === DIAGNOSTICS ===
         function runDiagnostics() {
             const display = document.getElementById('diag-display');
             const badge = document.getElementById('net-badge');
-            
-            display.innerText = 'Ping sequence started...\nTesting local gateway connection...';
-
+            display.innerText = 'Pinging local network gateway...';
             setTimeout(() => {
-                const isOnline = navigator.onLine;
-                const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-                const netType = connection ? connection.effectiveType : 'unknown';
-
-                if (isOnline) {
+                if (navigator.onLine) {
                     badge.innerHTML = '<span class="status-dot"></span>Online';
-                    display.innerText = `[SUCCESS] Host Online\nLatency: Nominal\nProtocol: ${window.location.protocol}\nType: ${netType.toUpperCase()}\nUser Agent: ${navigator.userAgent.slice(0, 40)}...`;
+                    display.innerText = `[OK] Network Connected\nHost: KENNCOM Local\nMode: Active`;
                 } else {
                     badge.innerHTML = '<span class="status-dot offline"></span>Offline';
-                    display.innerText = `[ERROR] System Offline\nNo connection to external network gateways.`;
+                    display.innerText = `[WARN] Network Gateway Offline`;
                 }
-            }, 500);
+            }, 400);
         }
 
-        // === MODULE 5: WHATSAPP & QR GENERATOR ===
-        let qrcodeObj = null;
-
-        function generateQR() {
-            const phone = document.getElementById('target-phone').value.trim();
-            const msg = encodeURIComponent(document.getElementById('qr-message').value);
-            const waUrl = `https://wa.me/${phone}?text=${msg}`;
-
-            const container = document.getElementById('qr-container');
-            const display = document.getElementById('qr-display');
-            
-            display.innerHTML = '';
-            container.style.display = 'block';
-
-            qrcodeObj = new QRCode(display, {
-                text: waUrl,
-                width: 128,
-                height: 128,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
-        }
-
-        function launchWhatsApp() {
-            const phone = document.getElementById('target-phone').value.trim();
-            const msg = encodeURIComponent(document.getElementById('qr-message').value);
-            window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
-        }
-
-        // === MATRIX CANVAS ANIMATION ENGINE ===
+        // === MATRIX CANVAS ===
         const canvas = document.getElementById('matrix-canvas');
         const ctx = canvas.getContext('2d');
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
-
-        const matrixChars = '0123456789ABCDEFKENNCOM@#$%&*';
+        const matrixChars = '0123456789KENNCOM@#$';
         const fontSize = 14;
-        let columns = Math.floor(canvas.width / fontSize);
-        let drops = Array(columns).fill(1);
-
+        let drops = Array(Math.floor(canvas.width / fontSize)).fill(1);
         function drawMatrix() {
             ctx.fillStyle = 'rgba(8, 11, 16, 0.05)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#00ff66';
-            ctx.font = `${fontSize}px 'Fira Code', monospace`;
-
+            ctx.font = `${fontSize}px monospace`;
             for (let i = 0; i < drops.length; i++) {
                 const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
                 drops[i]++;
             }
         }
         setInterval(drawMatrix, 33);
 
-        // === INITIALIZATION ===
+        // INITIALIZE
         window.addEventListener('load', () => {
             loadState();
+            renderPortals(portals);
             calculateCost();
             runDiagnostics();
             if (state.activeSession) runTimerLoop();
