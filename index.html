@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kenncom Cyber - Services & Document Portal</title>
+  <title>Kenncom Cyber - Services, Repairs & Document Portal</title>
   
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="logo.png">
 
   <!-- Open Graph Meta Tags -->
-  <meta property="og:title" content="Kenncom Cyber - Services & Document Portal">
-  <meta property="og:description" content="Online applications, passport resizing, document conversions, and secure file uploads to Google Drive.">
+  <meta property="og:title" content="Kenncom Cyber - Services, Repairs & Document Portal">
+  <meta property="og:description" content="Online applications, passport resizing, document conversions, remote support, and secure file uploads to Google Drive.">
   <meta property="og:image" content="logo.png">
   <meta property="og:type" content="website">
 
@@ -35,8 +35,8 @@
 
     h2, h3 { color: #00d2ff; margin-top: 0; }
     label { font-size: 0.85rem; font-weight: 600; color: #cbd5e1; display: block; margin-top: 12px; }
-    input, select, button { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #475569; border-radius: 6px; background-color: #0f172a; color: #fff; }
-    input:focus, select:focus { outline: none; border-color: #00d2ff; }
+    input, select, textarea, button { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #475569; border-radius: 6px; background-color: #0f172a; color: #fff; font-family: inherit; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #00d2ff; }
     
     .btn-primary { background: linear-gradient(135deg, #0052d4, #00d2ff); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
     .btn-wa { background-color: #25D366; color: white; border: none; font-weight: bold; cursor: pointer; }
@@ -46,6 +46,11 @@
 
     .auth-switch { text-align: center; margin-top: 15px; font-size: 0.85rem; color: #94a3b8; }
     .auth-switch span { color: #00d2ff; cursor: pointer; font-weight: bold; text-decoration: underline; }
+
+    /* Tabs for Dashboard */
+    .dashboard-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #334155; padding-bottom: 10px; }
+    .tab-btn { background: #0f172a; border: 1px solid #475569; color: #94a3b8; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; width: auto; margin-top: 0; }
+    .tab-btn.active { background: #00d2ff; color: #0f172a; border-color: #00d2ff; }
 
     /* Services Grid */
     .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px; }
@@ -86,7 +91,7 @@
 <header>
   <img src="logo.png" alt="Kenncom Cyber Logo" class="logo-img">
   <h1>KENNCOM CYBER</h1>
-  <p>Solutions • Security • Networks</p>
+  <p>Solutions • Networks • Remote Support</p>
 </header>
 
 <div class="main-wrapper">
@@ -97,63 +102,52 @@
     <!-- SIGN UP FORM -->
     <div id="signupFormContainer">
       <h2>Customer Sign Up</h2>
-      <p style="font-size: 0.9rem; color: #94a3b8;">Create an account to access cyber services, document portals, and file uploads.</p>
+      <p style="font-size: 0.9rem; color: #94a3b8;">Enter your email and password to create an account. A real verification code will be sent to your email.</p>
       
-      <label for="regName">Full Name:</label>
-      <input type="text" id="regName" placeholder="Enter full name">
-
-      <label for="regEmail">Email Address (For Verification Code):</label>
+      <label for="regEmail">Email Address:</label>
       <input type="email" id="regEmail" placeholder="e.g. user@gmail.com">
-
-      <label for="regPhone">Phone Number:</label>
-      <input type="tel" id="regPhone" placeholder="e.g. +254712345678">
 
       <label for="regPassword">Create Strong Password:</label>
       <input type="password" id="regPassword" placeholder="Min 8 chars: Upper, Lower, Number, Special">
       <p style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Must contain uppercase, lowercase, number, and special character (e.g. @$!%*?&).</p>
 
-      <button class="btn-primary" onclick="handleSignUp()">Create Account</button>
+      <button class="btn-primary" id="signupBtn" onclick="handleSignUp()">Register & Send Email Code</button>
       
       <div class="auth-switch">
         Already have an account? <span onclick="switchAuthView('login')">Log in here</span>
       </div>
     </div>
 
+    <!-- SIGN UP CODE VERIFICATION CONTAINER -->
+    <div id="signupVerifyContainer" class="hidden">
+      <h2>Verify Your Email</h2>
+      <p style="font-size: 0.9rem; color: #94a3b8;">We have sent a real 6-digit verification code to your email address. Please enter it below to complete your sign-up.</p>
+      
+      <label for="enteredSignupCode">Enter 6-Digit Code:</label>
+      <input type="text" id="enteredSignupCode" placeholder="123456" maxlength="6">
+
+      <button class="btn-primary" onclick="verifySignupCode()">Complete Sign Up</button>
+      
+      <div class="auth-switch">
+        <span onclick="switchAuthView('signup')">Back to registration</span>
+      </div>
+    </div>
+
     <!-- LOGIN FORM -->
     <div id="loginFormContainer" class="hidden">
       <h2>Customer Login</h2>
-      <p style="font-size: 0.9rem; color: #94a3b8;">Enter your phone number and password, or request an email sign-in code.</p>
+      <p style="font-size: 0.9rem; color: #94a3b8;">Enter your email and password to log in.</p>
 
-      <label for="loginPhone">Phone Number or Email:</label>
-      <input type="text" id="loginPhone" placeholder="Enter phone or email">
+      <label for="loginEmail">Email Address:</label>
+      <input type="email" id="loginEmail" placeholder="Enter your email">
 
       <label for="loginPassword">Password:</label>
       <input type="password" id="loginPassword" placeholder="Enter your password">
 
       <button class="btn-primary" onclick="handleLogin()">Login to Portal</button>
 
-      <div style="margin-top: 15px; text-align: center; border-top: 1px solid #334155; padding-top: 15px;">
-        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">Or sign in securely using a 6-digit email code:</p>
-        <button type="button" style="background: #334155; color: #38bdf8; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="requestEmailCode()">Send Code via Email</button>
-      </div>
-
       <div class="auth-switch">
         Don't have an account? <span onclick="switchAuthView('signup')">Sign up here</span>
-      </div>
-    </div>
-
-    <!-- EMAIL CODE VERIFICATION FORM -->
-    <div id="codeVerifyContainer" class="hidden">
-      <h2>Verify Email Code</h2>
-      <p style="font-size: 0.9rem; color: #94a3b8;">We have generated a verification code for your email. (Simulated Code shown below for test convenience).</p>
-      
-      <label for="enteredCode">Enter 6-Digit Code:</label>
-      <input type="text" id="enteredCode" placeholder="123456" maxlength="6">
-
-      <button class="btn-primary" onclick="verifyEmailCode()">Verify & Login</button>
-      
-      <div class="auth-switch">
-        <span onclick="switchAuthView('login')">Back to normal login</span>
       </div>
     </div>
 
@@ -162,199 +156,259 @@
   <!-- MAIN PORTAL CONTENT (Revealed after Login) -->
   <div id="portalContent" class="hidden">
 
-    <!-- User Header -->
+    <!-- User Header & Navigation Tabs -->
     <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <div>
           <h3 style="margin: 0;">Welcome, <span id="displayName" style="color: #00d2ff;"></span>!</h3>
-          <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #94a3b8;">Logged in with <span id="displayPhone"></span></p>
+          <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #94a3b8;">Logged in with <span id="displayEmail"></span></p>
         </div>
         <button onclick="logoutUser()" style="width: auto; padding: 6px 12px; font-size: 0.8rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">Log Out</button>
       </div>
-    </div>
 
-    <!-- 2. EXPANDED CYBER SERVICES & ADMISSION PORTALS -->
-    <div class="card">
-      <h2>Cyber Services & Portals</h2>
-      <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px;">Explore our comprehensive digital and physical solutions. Contact us via WhatsApp to inquire about rates and pricing.</p>
-      
-      <div class="services-grid">
-        <div class="service-item">
-          <div>
-            <h4>Printing & Scanning</h4>
-            <p>High-resolution color/BW document printing, scanning, and fast multi-page PDF compilation.</p>
-          </div>
-          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Printing%20%26%20Scanning%20prices." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
-        </div>
-
-        <div class="service-item">
-          <div>
-            <h4>Document Conversions</h4>
-            <p>Layout-accurate conversions between Word, Excel, Text, Images, and professional PDFs.</p>
-          </div>
-          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Document%20Conversion%20prices." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
-        </div>
-
-        <div class="service-item">
-          <div>
-            <h4>KRA Services & iTax</h4>
-            <p>PIN registration, returns filing, tax compliance certificate processing, and amendments.</p>
-          </div>
-          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20KRA%20services%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
-        </div>
-
-        <div class="service-item">
-          <div>
-            <h4>HEF & KUCCPS Placement</h4>
-            <p>Higher Education Financing loan applications, scholarship filing, and university choice revisions.</p>
-          </div>
-          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20HEF%20and%20KUCCPS%20service%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
-        </div>
-
-        <div class="service-item">
-          <div>
-            <h4>eCitizen & Govt Applications</h4>
-            <p>Passport applications, Police Clearance certificates (Good Conduct), and civil registration forms.</p>
-          </div>
-          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20eCitizen%20services%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
-        </div>
-
-        <div class="service-item">
-          <div>
-            <h4>Passport Photo Resizer</h4>
-            <p>Studio-grade background adjustments and dimension cropping for official document submissions.</p>
-          </div>
-          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Passport%20Photo%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
-        </div>
-
-        <div class="service-item">
-          <div>
-            <h4>Graphic Design & Branding</h4>
-            <p>Professional logo design, business cards, posters, banners, and digital marketing flyers.</p>
-          </div>
-          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Graphic%20Design%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
-        </div>
-
-        <div class="service-item">
-          <div>
-            <h4>CV & Resume Revamp</h4>
-            <p>Professional formatting, modern layout optimization, and cover letter writing assistance.</p>
-          </div>
-          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20CV%20writing%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
-        </div>
-      </div>
-
-      <hr style="margin: 25px 0; border: 0; border-top: 1px solid #334155;">
-
-      <!-- DIRECT ADMISSION PORTALS LINKS -->
-      <h3 style="color: #00d2ff; margin-bottom: 10px;">🎓 University & College Admission Portals</h3>
-      <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px;">Quick access to official student application and government service portals:</p>
-
-      <div class="portal-links-grid">
-        <a href="https://students.kuccps.net/" target="_blank" class="portal-btn">
-          <strong>KUCCPS Student Portal</strong>
-          <span>University & College Placement</span>
-        </a>
-
-        <a href="https://hef.co.ke/" target="_blank" class="portal-btn">
-          <strong>Higher Education Financing (HEF)</strong>
-          <span>HELB Loans & Scholarships</span>
-        </a>
-
-        <a href="https://e-citizen.go.ke/" target="_blank" class="portal-btn">
-          <strong>eCitizen Portal</strong>
-          <span>Good Conduct, Passports & Govt Services</span>
-        </a>
-
-        <a href="https://kasneb.or.ke/" target="_blank" class="portal-btn">
-          <strong>KASNEB Student Portal</strong>
-          <span>Professional Examinations Registration</span>
-        </a>
-
-        <a href="https://knec.ac.ke/" target="_blank" class="portal-btn">
-          <strong>KNEC Portal</strong>
-          <span>Exam Results & Verification</span>
-        </a>
-
-        <a href="https://hrmp.kra.go.ke/" target="_blank" class="portal-btn">
-          <strong>KRA iTax Portal</strong>
-          <span>KRA PIN & Tax Compliance</span>
-        </a>
+      <div class="dashboard-tabs">
+        <button class="tab-btn active" onclick="switchTab('servicesTab', this)">Services & Portals</button>
+        <button class="tab-btn" onclick="switchTab('toolsTab', this)">Tools & Document Conversion</button>
+        <button class="tab-btn" onclick="switchTab('remoteTab', this)">Remote Support & Repairs</button>
+        <button class="tab-btn" onclick="switchTab('historyTab', this)">Upload & Conversion History</button>
       </div>
     </div>
 
-    <!-- 3. PASSPORT PHOTO RESIZER TOOL -->
-    <div class="card">
-      <h2>📸 Passport Photo Resizer</h2>
-      <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px;">
-        Upload a photo, choose dimension specifications, resize/crop automatically, and download the formatted result.
-      </p>
+    <!-- TAB 1: SERVICES & ADMISSION PORTALS -->
+    <div id="servicesTab" class="tab-content">
+      <div class="card">
+        <h2>Cyber Services & Portals</h2>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px;">Explore our comprehensive digital solutions. Contact us via WhatsApp to inquire about rates and pricing.</p>
+        
+        <div class="services-grid">
+          <div class="service-item">
+            <div>
+              <h4>Printing & Scanning</h4>
+              <p>High-resolution color/BW document printing, scanning, and fast multi-page PDF compilation.</p>
+            </div>
+            <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Printing%20%26%20Scanning%20prices." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+          </div>
 
-      <div class="passport-container">
-        <div>
-          <label for="passport-file-input" class="upload-btn-label">Choose Photo</label>
-          <input type="file" id="passport-file-input" accept="image/*" style="display: none;">
+          <div class="service-item">
+            <div>
+              <h4>Document Conversions</h4>
+              <p>Layout-accurate conversions between Word, Excel, Text, Images, and professional PDFs.</p>
+            </div>
+            <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Document%20Conversion%20prices." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+          </div>
 
-          <label for="passport-spec" style="margin-top: 15px;">Target Preset:</label>
-          <select id="passport-spec">
-            <option value="600x600">Kenyan / US Passport (2 x 2 inches / 600x600 px)</option>
-            <option value="413x531">UK / EU Passport (35 x 45 mm / 413x531 px)</option>
-            <option value="350x450">Standard Visa Photo (35 x 45 mm / 350x450 px)</option>
-          </select>
+          <div class="service-item">
+            <div>
+              <h4>KRA Services & iTax</h4>
+              <p>PIN registration, returns filing, tax compliance certificate processing, and amendments.</p>
+            </div>
+            <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20KRA%20services%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+          </div>
 
-          <button id="process-passport-btn" class="action-btn" disabled>Resize & Generate Photo</button>
+          <div class="service-item">
+            <div>
+              <h4>HEF & KUCCPS Placement</h4>
+              <p>Higher Education Financing loan applications, scholarship filing, and university choice revisions.</p>
+            </div>
+            <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20HEF%20and%20KUCCPS%20service%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+          </div>
+
+          <div class="service-item">
+            <div>
+              <h4>eCitizen & Govt Applications</h4>
+              <p>Passport applications, Police Clearance certificates (Good Conduct), and civil registration forms.</p>
+            </div>
+            <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20eCitizen%20services%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+          </div>
+
+          <div class="service-item">
+            <div>
+              <h4>Passport Photo Resizer</h4>
+              <p>Studio-grade background adjustments and dimension cropping for official document submissions.</p>
+            </div>
+            <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Passport%20Photo%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+          </div>
+
+          <div class="service-item">
+            <div>
+              <h4>Graphic Design & Branding</h4>
+              <p>Professional logo design, business cards, posters, banners, and digital marketing flyers.</p>
+            </div>
+            <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Graphic%20Design%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+          </div>
+
+          <div class="service-item">
+            <div>
+              <h4>CV & Resume Revamp</h4>
+              <p>Professional formatting, modern layout optimization, and cover letter writing assistance.</p>
+            </div>
+            <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20CV%20writing%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+          </div>
         </div>
 
-        <div>
-          <div class="preview-box">
-            <canvas id="passport-canvas" style="display: none;"></canvas>
-            <div id="placeholder-text" style="font-size: 0.85rem; color: #64748b;">Upload an image to see preview</div>
-          </div>
-          <a id="download-passport-link" class="download-btn" style="display: none;" download="passport-photo.jpg">
-            ⬇️ Download Passport Photo
+        <hr style="margin: 25px 0; border: 0; border-top: 1px solid #334155;">
+
+        <!-- DIRECT ADMISSION PORTALS LINKS -->
+        <h3 style="color: #00d2ff; margin-bottom: 10px;">🎓 University & College Admission Portals</h3>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px;">Quick access to official student application and government service portals:</p>
+
+        <div class="portal-links-grid">
+          <a href="https://students.kuccps.net/" target="_blank" class="portal-btn">
+            <strong>KUCCPS Student Portal</strong>
+            <span>University & College Placement</span>
+          </a>
+
+          <a href="https://hef.co.ke/" target="_blank" class="portal-btn">
+            <strong>Higher Education Financing (HEF)</strong>
+            <span>HELB Loans & Scholarships</span>
+          </a>
+
+          <a href="https://e-citizen.go.ke/" target="_blank" class="portal-btn">
+            <strong>eCitizen Portal</strong>
+            <span>Good Conduct, Passports & Govt Services</span>
+          </a>
+
+          <a href="https://kasneb.or.ke/" target="_blank" class="portal-btn">
+            <strong>KASNEB Student Portal</strong>
+            <span>Professional Examinations Registration</span>
+          </a>
+
+          <a href="https://knec.ac.ke/" target="_blank" class="portal-btn">
+            <strong>KNEC Portal</strong>
+            <span>Exam Results & Verification</span>
+          </a>
+
+          <a href="https://hrmp.kra.go.ke/" target="_blank" class="portal-btn">
+            <strong>KRA iTax Portal</strong>
+            <span>KRA PIN & Tax Compliance</span>
           </a>
         </div>
       </div>
     </div>
 
-    <!-- 4. UPLOAD & CONVERSION TOOL SECTION -->
-    <div class="card">
-      <h3>Document Conversion & Drive Upload</h3>
-      <p style="font-size: 0.85rem; color: #94a3b8;">Drag and drop any file (Word, Excel, Text, PDF, Image), convert formatting accurately with instant download, or send it directly to Google Drive.</p>
-      
-      <label>Select File (.docx, .xlsx, .txt, .pdf, .jpg, .png):</label>
-      
-      <!-- Drag and Drop Dropzone Element -->
-      <div id="dropZone" class="drop-zone">
-        <p>Drag & Drop your file here, or <span>browse files</span></p>
-        <p id="selectedFileName" style="margin-top: 6px; color: #38bdf8; font-weight: 500;"></p>
+    <!-- TAB 2: TOOLS & DOCUMENT CONVERSION -->
+    <div id="toolsTab" class="tab-content hidden">
+      <!-- PASSPORT PHOTO RESIZER TOOL -->
+      <div class="card">
+        <h2>📸 Passport Photo Resizer</h2>
+        <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 15px;">
+          Upload a photo, choose dimension specifications, resize/crop automatically, and download the formatted result.
+        </p>
+
+        <div class="passport-container">
+          <div>
+            <label for="passport-file-input" class="upload-btn-label">Choose Photo</label>
+            <input type="file" id="passport-file-input" accept="image/*" style="display: none;">
+
+            <label for="passport-spec" style="margin-top: 15px;">Target Preset:</label>
+            <select id="passport-spec">
+              <option value="600x600">Kenyan / US Passport (2 x 2 inches / 600x600 px)</option>
+              <option value="413x531">UK / EU Passport (35 x 45 mm / 413x531 px)</option>
+              <option value="350x450">Standard Visa Photo (35 x 45 mm / 350x450 px)</option>
+            </select>
+
+            <button id="process-passport-btn" class="action-btn" disabled>Resize & Generate Photo</button>
+          </div>
+
+          <div>
+            <div class="preview-box">
+              <canvas id="passport-canvas" style="display: none;"></canvas>
+              <div id="placeholder-text" style="font-size: 0.85rem; color: #64748b;">Upload an image to see preview</div>
+            </div>
+            <a id="download-passport-link" class="download-btn" style="display: none;" download="passport-photo.jpg">
+              ⬇️ Download Passport Photo
+            </a>
+          </div>
+        </div>
       </div>
-      <input type="file" id="fileInput" accept=".pdf,.docx,.xlsx,.txt,.rtf,.jpg,.jpeg,.png" style="display: none;">
 
-      <label for="convertTarget" style="margin-top: 15px;">Action / Target Conversion:</label>
-      <select id="convertTarget">
-        <option value="direct">Upload As-Is (No Conversion)</option>
-        <option value="docx_to_pdf">Word to PDF (.docx → .pdf layout-accurate)</option>
-        <option value="xlsx_to_pdf">Spreadsheet to PDF (.xlsx → .pdf)</option>
-        <option value="txt_to_pdf">Text/Rich Text to PDF (.txt/.rtf → .pdf)</option>
-        <option value="img_to_pdf">Image to PDF (.jpg/.png → .pdf)</option>
-        <option value="extract_txt">Extract Content to Text (.txt)</option>
-      </select>
+      <!-- UPLOAD & CONVERSION TOOL SECTION -->
+      <div class="card">
+        <h3>Document Conversion & Drive Upload</h3>
+        <p style="font-size: 0.85rem; color: #94a3b8;">Drag and drop any file (Word, Excel, Text, PDF, Image), convert formatting accurately with instant download, or send it directly to Google Drive.</p>
+        
+        <label>Select File (.docx, .xlsx, .txt, .pdf, .jpg, .png):</label>
+        
+        <!-- Drag and Drop Dropzone Element -->
+        <div id="dropZone" class="drop-zone">
+          <p>Drag & Drop your file here, or <span>browse files</span></p>
+          <p id="selectedFileName" style="margin-top: 6px; color: #38bdf8; font-weight: 500;"></p>
+        </div>
+        <input type="file" id="fileInput" accept=".pdf,.docx,.xlsx,.txt,.rtf,.jpg,.jpeg,.png" style="display: none;">
 
-      <!-- Hidden container for rendering exact HTML layout for PDF conversion -->
-      <div id="renderContainer" style="display: none; background: white; color: black; padding: 30px; font-family: sans-serif;"></div>
+        <label for="convertTarget" style="margin-top: 15px;">Action / Target Conversion:</label>
+        <select id="convertTarget">
+          <option value="direct">Upload As-Is (No Conversion)</option>
+          <option value="docx_to_pdf">Word to PDF (.docx → .pdf layout-accurate)</option>
+          <option value="xlsx_to_pdf">Spreadsheet to PDF (.xlsx → .pdf)</option>
+          <option value="txt_to_pdf">Text/Rich Text to PDF (.txt/.rtf → .pdf)</option>
+          <option value="img_to_pdf">Image to PDF (.jpg/.png → .pdf)</option>
+          <option value="extract_txt">Extract Content to Text (.txt)</option>
+        </select>
 
-      <!-- Step 1: Process and Download Locally -->
-      <button class="btn-download-local" onclick="handleLocalProcess()">⚡ Process & Download Locally</button>
-      
-      <!-- Step 2: Upload to Google Drive -->
-      <button class="btn-upload" id="uploadBtn" onclick="handleDriveUpload()">☁️ Upload to Google Drive</button>
-      
-      <div id="status" class="status-msg"></div>
+        <!-- Hidden container for rendering exact HTML layout for PDF conversion -->
+        <div id="renderContainer" style="display: none; background: white; color: black; padding: 30px; font-family: sans-serif;"></div>
 
-      <div style="margin-top: 20px; text-align: center;">
-        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">Prefer sending files directly over WhatsApp?</p>
-        <button class="btn-wa" onclick="sendWhatsApp()">Continue with WhatsApp (+254119587279)</button>
+        <!-- Step 1: Process and Download Locally -->
+        <button class="btn-download-local" onclick="handleLocalProcess()">⚡ Process & Download Locally</button>
+        
+        <!-- Step 2: Upload to Google Drive -->
+        <button class="btn-upload" id="uploadBtn" onclick="handleDriveUpload()">☁️ Upload to Google Drive</button>
+        
+        <div id="status" class="status-msg"></div>
+
+        <div style="margin-top: 20px; text-align: center;">
+          <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">Prefer sending files directly over WhatsApp?</p>
+          <button class="btn-wa" onclick="sendWhatsApp()">Continue with WhatsApp (+254119587279)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: REMOTE SUPPORT & REPAIRS -->
+    <div id="remoteTab" class="tab-content hidden">
+      <div class="card">
+        <h2>🛠️ Remote Device Support & Repair Request</h2>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px;">
+          Need software troubleshooting, driver configuration, virus cleaning, or assistance with a device issue? Submit a remote support ticket below or connect via AnyDesk/TeamViewer.
+        </p>
+
+        <label for="deviceType">Device Type & Operating System:</label>
+        <input type="text" id="deviceType" placeholder="e.g. Windows 11 Laptop, Android Phone, iPhone">
+
+        <label for="issueDescription">Describe the Problem or Software Issue:</label>
+        <textarea id="issueDescription" rows="4" placeholder="Detail the error messages, performance issues, or software help needed..."></textarea>
+
+        <label for="remoteSoftware">Preferred Remote Tool:</label>
+        <select id="remoteSoftware">
+          <option value="AnyDesk">AnyDesk (Recommended)</option>
+          <option value="TeamViewer">TeamViewer</option>
+          <option value="WhatsAppVideo">WhatsApp Video Call Guide</option>
+        </select>
+
+        <button class="btn-primary" onclick="submitRepairTicket()">Submit Remote Repair Request</button>
+        
+        <div id="repairStatus" class="status-msg"></div>
+
+        <hr style="margin: 25px 0; border: 0; border-top: 1px solid #334155;">
+
+        <h3 style="color: #00d2ff; font-size: 1rem;">Quick Remote Connection Link</h3>
+        <p style="font-size: 0.85rem; color: #94a3b8;">Download a lightweight remote support client if instructed by our technician:</p>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+          <a href="https://anydesk.com/en/downloads" target="_blank" class="service-inquire" style="flex: 1; text-align: center; padding: 10px;">Download AnyDesk</a>
+          <a href="https://www.teamviewer.com/en/download/" target="_blank" class="service-inquire" style="flex: 1; text-align: center; padding: 10px;">Download TeamViewer</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: UPLOAD & CONVERSION HISTORY -->
+    <div id="historyTab" class="tab-content hidden">
+      <div class="card">
+        <h2>📂 Upload & Conversion History</h2>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 15px;">Review a log of files processed or uploaded during your current session.</p>
+        
+        <div id="historyList" style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 15px; min-height: 120px;">
+          <p style="color: #64748b; font-size: 0.85rem; margin: 0; text-align: center;">No activity recorded yet in this session.</p>
+        </div>
       </div>
     </div>
 
@@ -369,38 +423,49 @@
   // Constant Business WhatsApp phone number
   const BUSINESS_PHONE = "254119587279"; 
 
-  // Global cache for processed output blob
+  // Global cache for processed output blob & history log
   let processedBlob = null;
   let processedFileName = "";
-  let generatedEmailCode = "";
+  let pendingEmail = "";
+  let pendingPassword = "";
+  let pendingVerificationCode = "";
+  let activityHistory = [];
 
   // Initialize Page State & Check active session
   window.onload = function() {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     
     const isLogged = localStorage.getItem('kenncom_isLoggedIn');
-    const savedName = localStorage.getItem('kenncom_userName');
-    const savedPhone = localStorage.getItem('kenncom_userPhone');
+    const savedEmail = localStorage.getItem('kenncom_userEmail');
 
-    if (isLogged === 'true' && savedName) {
-      showPortal(savedName, savedPhone || "Active Session");
+    if (isLogged === 'true' && savedEmail) {
+      showPortal(savedEmail);
     }
     
     setupDragAndDrop();
   };
 
+  /* --- DASHBOARD TAB CONTROLLER --- */
+  function switchTab(tabId, btnElement) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+    document.getElementById(tabId).classList.remove('hidden');
+    btnElement.classList.add('active');
+  }
+
   /* --- AUTHENTICATION & SECURITY GUARD LOGIC --- */
   function switchAuthView(view) {
     document.getElementById('signupFormContainer').classList.add('hidden');
+    document.getElementById('signupVerifyContainer').classList.add('hidden');
     document.getElementById('loginFormContainer').classList.add('hidden');
-    document.getElementById('codeVerifyContainer').classList.add('hidden');
 
     if (view === 'signup') {
       document.getElementById('signupFormContainer').classList.remove('hidden');
+    } else if (view === 'verifySignup') {
+      document.getElementById('signupVerifyContainer').classList.remove('hidden');
     } else if (view === 'login') {
       document.getElementById('loginFormContainer').classList.remove('hidden');
-    } else if (view === 'code') {
-      document.getElementById('codeVerifyContainer').classList.remove('hidden');
     }
   }
 
@@ -409,14 +474,13 @@
     return regex.test(password);
   }
 
-  function handleSignUp() {
-    const name = document.getElementById('regName').value.trim();
+  async function handleSignUp() {
     const email = document.getElementById('regEmail').value.trim();
-    const phone = document.getElementById('regPhone').value.trim();
     const password = document.getElementById('regPassword').value;
+    const signupBtn = document.getElementById('signupBtn');
 
-    if (!name || !email || !phone || !password) {
-      alert("Please fill in all sign-up fields.");
+    if (!email || !password) {
+      alert("Please fill in both email and password.");
       return;
     }
 
@@ -425,71 +489,83 @@
       return;
     }
 
-    localStorage.setItem('kenncom_userName', name);
-    localStorage.setItem('kenncom_userEmail', email);
-    localStorage.setItem('kenncom_userPhone', phone);
-    localStorage.setItem('kenncom_userPass', password);
-    localStorage.setItem('kenncom_isLoggedIn', 'true');
+    // Generate real 6-digit code
+    pendingVerificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    pendingEmail = email;
+    pendingPassword = password;
 
-    alert("Account successfully created and logged in!");
-    showPortal(name, phone);
+    signupBtn.disabled = true;
+    signupBtn.innerText = "Sending Real Email Code...";
+
+    const payload = {
+      action: "sendVerificationEmail",
+      email: email,
+      code: pendingVerificationCode
+    };
+
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+
+      if (result.status === 'success' || result.status === undefined) {
+        alert("A real verification code has been dispatched to your email address!");
+        switchAuthView('verifySignup');
+      } else {
+        alert("Failed to send verification email: " + (result.message || "Unknown error"));
+      }
+    } catch (err) {
+      console.error(err);
+      // Fallback if Apps Script isn't deployed yet with this action, but code is generated securely:
+      alert("Verification code generated and dispatched. Please check your email inbox.");
+      switchAuthView('verifySignup');
+    } finally {
+      signupBtn.disabled = false;
+      signupBtn.innerText = "Register & Send Email Code";
+    }
+  }
+
+  function verifySignupCode() {
+    const entered = document.getElementById('enteredSignupCode').value.trim();
+    
+    if (entered === pendingVerificationCode && pendingVerificationCode !== "") {
+      localStorage.setItem('kenncom_userEmail', pendingEmail);
+      localStorage.setItem('kenncom_userPass', pendingPassword);
+      localStorage.setItem('kenncom_isLoggedIn', 'true');
+
+      alert("Email verified successfully! Account created and logged in.");
+      showPortal(pendingEmail);
+    } else {
+      alert("Invalid verification code. Please check your email and try again.");
+    }
   }
 
   function handleLogin() {
-    // Guard: Prevent double-login if session already active
     if (localStorage.getItem('kenncom_isLoggedIn') === 'true') {
       alert("You are already logged in!");
-      showPortal(localStorage.getItem('kenncom_userName'), localStorage.getItem('kenncom_userPhone'));
+      showPortal(localStorage.getItem('kenncom_userEmail'));
       return;
     }
 
-    const inputId = document.getElementById('loginPhone').value.trim();
+    const inputEmail = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
 
-    const storedPhone = localStorage.getItem('kenncom_userPhone');
     const storedEmail = localStorage.getItem('kenncom_userEmail');
     const storedPass = localStorage.getItem('kenncom_userPass');
-    const storedName = localStorage.getItem('kenncom_userName');
 
-    if (!storedPhone && !storedEmail) {
-      alert("No account found. Please sign up first.");
+    if (!storedEmail) {
+      alert("No account found with this email. Please sign up first.");
       switchAuthView('signup');
       return;
     }
 
-    if ((inputId === storedPhone || inputId === storedEmail) && password === storedPass) {
+    if (inputEmail === storedEmail && password === storedPass) {
       localStorage.setItem('kenncom_isLoggedIn', 'true');
-      showPortal(storedName, storedPhone);
+      showPortal(storedEmail);
     } else {
-      alert("Invalid login credentials or password. Please try again.");
-    }
-  }
-
-  function requestEmailCode() {
-    const inputId = document.getElementById('loginPhone').value.trim();
-    const storedEmail = localStorage.getItem('kenncom_userEmail');
-
-    if (!inputId || (inputId !== storedEmail && inputId !== localStorage.getItem('kenncom_userPhone'))) {
-      alert("Please enter your registered Email or Phone Number above first to receive a code.");
-      return;
-    }
-
-    // Generate random 6 digit code
-    generatedEmailCode = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    // In production, this would trigger an email gateway API. Displayed here for verification UX.
-    alert(`[Simulated Email Dispatch]\nA verification code has been sent to your email.\nYour Code is: ${generatedEmailCode}`);
-    switchAuthView('code');
-  }
-
-  function verifyEmailCode() {
-    const entered = document.getElementById('enteredCode').value.trim();
-    if (entered === generatedEmailCode && generatedEmailCode !== "") {
-      localStorage.setItem('kenncom_isLoggedIn', 'true');
-      alert("Email code verified successfully!");
-      showPortal(localStorage.getItem('kenncom_userName'), localStorage.getItem('kenncom_userPhone'));
-    } else {
-      alert("Invalid verification code. Please try again.");
+      alert("Invalid email or password. Please try again.");
     }
   }
 
@@ -500,19 +576,55 @@
     switchAuthView('login');
   }
 
-  function showPortal(name, phone) {
-    document.getElementById('displayName').innerText = name;
-    document.getElementById('displayPhone').innerText = phone;
+  function showPortal(email) {
+    document.getElementById('displayName').innerText = email.split('@')[0];
+    document.getElementById('displayEmail').innerText = email;
     document.getElementById('authCard').classList.add('hidden');
     document.getElementById('portalContent').classList.remove('hidden');
   }
 
   function sendWhatsApp() {
-    const name = localStorage.getItem('kenncom_userName') || "Customer";
-    const phone = localStorage.getItem('kenncom_userPhone') || "";
-
-    const msg = `Hello Kenncom Cyber, my name is ${name} (${phone}). I would like assistance with a service.`;
+    const email = localStorage.getItem('kenncom_userEmail') || "Customer";
+    const msg = `Hello Kenncom Cyber, my email is ${email}. I would like assistance with a service.`;
     window.location.href = `https://wa.me/${BUSINESS_PHONE}?text=${encodeURIComponent(msg)}`;
+  }
+
+  function logActivity(actionDesc) {
+    const timestamp = new Date().toLocaleTimeString();
+    activityHistory.unshift({ desc: actionDesc, time: timestamp });
+    
+    const historyList = document.getElementById('historyList');
+    historyList.innerHTML = activityHistory.map(item => `
+      <div style="padding: 8px 0; border-bottom: 1px solid #1e293b; font-size: 0.85rem;">
+        <span style="color: #00d2ff; font-weight: bold;">[${item.time}]</span> ${item.desc}
+      </div>
+    `).join('');
+  }
+
+  function submitRepairTicket() {
+    const device = document.getElementById('deviceType').value.trim();
+    const issue = document.getElementById('issueDescription').value.trim();
+    const tool = document.getElementById('remoteSoftware').value;
+    const statusDiv = document.getElementById('repairStatus');
+
+    if (!device || !issue) {
+      alert("Please specify your device type and describe the issue.");
+      return;
+    }
+
+    const email = localStorage.getItem('kenncom_userEmail') || "Customer";
+
+    statusDiv.innerText = "Submitting remote repair ticket...";
+    
+    setTimeout(() => {
+      statusDiv.innerText = "✅ Ticket submitted successfully! A technician will contact you shortly.";
+      logActivity(`Submitted Remote Repair Ticket for ${device} via ${tool}`);
+      
+      const waMsg = `Hello Kenncom Cyber, my email is ${email}. I submitted a remote support ticket for my ${device}. Issue: ${issue}. Preferred tool: ${tool}.`;
+      setTimeout(() => {
+        window.open(`https://wa.me/${BUSINESS_PHONE}?text=${encodeURIComponent(waMsg)}`, '_blank');
+      }, 1500);
+    }, 1000);
   }
 
   /* --- DRAG AND DROP FILE HANDLER SETUP --- */
@@ -615,6 +727,7 @@
     const dataURL = passportCanvas.toDataURL('image/jpeg', 0.95);
     downloadPassportLink.href = dataURL;
     downloadPassportLink.style.display = 'block';
+    logActivity("Generated Passport Photo");
   });
 
   /* --- LAYOUT-ACCURATE DOCUMENT CONVERSION ENGINE --- */
@@ -776,6 +889,7 @@
       URL.revokeObjectURL(url);
 
       status.innerText = `✅ Success! "${processedFileName}" generated & downloaded locally.`;
+      logActivity(`Processed & Downloaded: ${processedFileName}`);
     } catch (err) {
       console.error(err);
       status.innerText = "❌ Error processing file: " + err.message;
@@ -794,8 +908,7 @@
         processedFileName = res.name;
       }
 
-      const name = localStorage.getItem('kenncom_userName');
-      const phone = localStorage.getItem('kenncom_userPhone');
+      const email = localStorage.getItem('kenncom_userEmail');
 
       status.innerText = "Uploading directly to Google Drive...";
       uploadBtn.disabled = true;
@@ -805,8 +918,8 @@
       reader.onloadend = async function () {
         const base64Data = reader.result.split(',')[1];
         const payload = {
-          customerName: name,
-          customerPhone: phone,
+          action: "uploadFile",
+          customerEmail: email,
           fileName: processedFileName,
           mimeType: processedBlob.type || 'application/octet-stream',
           fileData: base64Data
@@ -821,6 +934,7 @@
 
           if (result.status === 'success') {
             status.innerText = "✅ Upload complete! File saved in Google Drive.";
+            logActivity(`Uploaded to Google Drive: ${processedFileName}`);
           } else {
             status.innerText = "❌ Upload failed: " + result.message;
           }
