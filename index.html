@@ -14,10 +14,11 @@
   <meta property="og:image" content="logo.png">
   <meta property="og:type" content="website">
 
-  <!-- Required Libraries for In-Browser File Conversions -->
+  <!-- Required Libraries for In-Browser File Conversions & Rendering -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   
   <style>
     * { box-sizing: border-box; }
@@ -38,7 +39,8 @@
     
     .btn-login { background: linear-gradient(135deg, #0052d4, #00d2ff); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
     .btn-wa { background-color: #25D366; color: white; border: none; font-weight: bold; cursor: pointer; }
-    .btn-upload { background: linear-gradient(135deg, #0052d4, #00d2ff); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
+    .btn-download-local { background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
+    .btn-upload { background: linear-gradient(135deg, #0052d4, #00d2ff); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
     button:disabled { background: #475569; cursor: not-allowed; opacity: 0.6; }
 
     /* Services Grid */
@@ -121,7 +123,7 @@
         </div>
         <div class="service-item">
           <h4>Format Conversion</h4>
-          <p>Instant online conversion for images, Word documents, and text files.</p>
+          <p>Convert Word, Excel, Text, and Images to PDF or extract text instantly.</p>
         </div>
         <div class="service-item">
           <h4>Direct Drive Upload</h4>
@@ -208,31 +210,39 @@
 
     <!-- 4. UPLOAD & CONVERSION TOOL SECTION -->
     <div class="card">
-      <h3>Upload & Convert Document</h3>
-      <p style="font-size: 0.85rem; color: #94a3b8;">Drag and drop your file or click to select, choose an optional conversion format, and send it directly to our Google Drive storage.</p>
+      <h3>Document Conversion & Drive Upload</h3>
+      <p style="font-size: 0.85rem; color: #94a3b8;">Drag and drop any file (Word, Excel, Text, PDF, Image), convert or extract it locally with instant download, or send it directly to Google Drive.</p>
       
-      <label>Select File (PDF, DOCX, JPG, PNG, TXT):</label>
+      <label>Select File (.docx, .xlsx, .txt, .pdf, .jpg, .png):</label>
       
       <!-- Drag and Drop Dropzone Element -->
       <div id="dropZone" class="drop-zone">
         <p>Drag & Drop your file here, or <span>browse files</span></p>
         <p id="selectedFileName" style="margin-top: 6px; color: #38bdf8; font-weight: 500;"></p>
       </div>
-      <input type="file" id="fileInput" accept=".pdf,.docx,.jpg,.jpeg,.png,.txt" style="display: none;">
+      <input type="file" id="fileInput" accept=".pdf,.docx,.xlsx,.txt,.rtf,.jpg,.jpeg,.png" style="display: none;">
 
-      <label for="convertTarget" style="margin-top: 15px;">Action / Target Format:</label>
+      <label for="convertTarget" style="margin-top: 15px;">Action / Target Conversion:</label>
       <select id="convertTarget">
         <option value="direct">Upload As-Is (No Conversion)</option>
-        <option value="pdf">Convert Image to PDF & Upload</option>
-        <option value="txt">Extract to Text & Upload</option>
+        <option value="docx_to_pdf">Word to PDF (.docx → .pdf)</option>
+        <option value="xlsx_to_pdf">Spreadsheet to PDF (.xlsx → .pdf)</option>
+        <option value="txt_to_pdf">Text/Rich Text to PDF (.txt/.rtf → .pdf)</option>
+        <option value="img_to_pdf">Image to PDF (.jpg/.png → .pdf)</option>
+        <option value="extract_txt">Extract Content to Text (.txt)</option>
       </select>
 
-      <button class="btn-upload" id="uploadBtn" onclick="handleFileProcessing()">Process & Upload to Drive</button>
+      <!-- Step 1: Process and Download Locally -->
+      <button class="btn-download-local" onclick="handleLocalProcess()">⚡ Process & Download Locally</button>
+      
+      <!-- Step 2: Upload to Google Drive -->
+      <button class="btn-upload" id="uploadBtn" onclick="handleDriveUpload()">☁️ Upload to Google Drive</button>
+      
       <div id="status" class="status-msg"></div>
 
       <div style="margin-top: 20px; text-align: center;">
-        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">Prefer sending files directly over chat?</p>
-        <button class="btn-wa" onclick="sendWhatsApp()">Continue with WhatsApp</button>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">Prefer sending files directly over WhatsApp?</p>
+        <button class="btn-wa" onclick="sendWhatsApp()">Continue with WhatsApp (+254119587279)</button>
       </div>
     </div>
 
@@ -244,8 +254,12 @@
   // GOOGLE APPS SCRIPT WEB APP ENDPOINT
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTIBA2wSvQsbQyG3G6IEhUbzmOSW9-HcWrdIhR8Jf_JNRi7Oj6yH1Gn25Qk7-5jP5uSg/exec";
   
-  // Business WhatsApp phone number
-  const BUSINESS_PHONE = "254700000000"; 
+  // Constant Business WhatsApp phone number
+  const BUSINESS_PHONE = "254119587279"; 
+
+  // Global cache for processed output blob
+  let processedBlob = null;
+  let processedFileName = "";
 
   // Initialize Page State
   window.onload = function() {
@@ -293,7 +307,7 @@
     const name = localStorage.getItem('savedName');
     const phone = localStorage.getItem('savedPhone');
 
-    const msg = `Hello, my name is ${name} (${phone}). I would like to send a document.`;
+    const msg = `Hello Kenncom Cyber, my name is ${name} (${phone}). I would like assistance with a document.`;
     window.location.href = `https://wa.me/${BUSINESS_PHONE}?text=${encodeURIComponent(msg)}`;
   }
 
@@ -308,6 +322,7 @@
     fileInput.addEventListener('change', () => {
       if (fileInput.files.length > 0) {
         selectedFileName.textContent = `Selected: ${fileInput.files[0].name}`;
+        processedBlob = null; // Reset cache
       }
     });
 
@@ -333,6 +348,7 @@
       if (files.length > 0) {
         fileInput.files = files;
         selectedFileName.textContent = `Selected: ${files[0].name}`;
+        processedBlob = null; // Reset cache
       }
     });
   }
@@ -397,106 +413,171 @@
     downloadPassportLink.style.display = 'block';
   });
 
-  /* --- DRIVE UPLOAD & CONVERSION ENGINE --- */
-  async function uploadToGoogleDrive(fileBlob, fileName, mimeType) {
-    const name = localStorage.getItem('savedName');
-    const phone = localStorage.getItem('savedPhone');
-
-    const status = document.getElementById('status');
-    const uploadBtn = document.getElementById('uploadBtn');
-    
-    status.innerText = "Uploading directly to Google Drive...";
-    uploadBtn.disabled = true;
-
-    const reader = new FileReader();
-    reader.readAsDataURL(fileBlob);
-    reader.onloadend = async function () {
-      const base64Data = reader.result.split(',')[1];
-
-      const payload = {
-        customerName: name,
-        customerPhone: phone,
-        fileName: fileName,
-        mimeType: mimeType,
-        fileData: base64Data
-      };
-
-      try {
-        const response = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        });
-        const result = await response.json();
-
-        if (result.status === 'success') {
-          status.innerText = "✅ Upload complete! File saved in Google Drive.";
-        } else {
-          status.innerText = "❌ Upload failed: " + result.message;
-        }
-      } catch (err) {
-        console.error(err);
-        status.innerText = "❌ Upload error. Please check network connection.";
-      } finally {
-        uploadBtn.disabled = false;
-      }
-    };
-  }
-
-  async function handleFileProcessing() {
+  /* --- DOCUMENT PROCESSING & CONVERSION ENGINE --- */
+  async function generateProcessedFile() {
     const fileInput = document.getElementById('fileInput');
     const action = document.getElementById('convertTarget').value;
-    const status = document.getElementById('status');
 
     if (fileInput.files.length === 0) {
-      alert("Please select a file first.");
-      return;
+      throw new Error("Please select a file first.");
     }
 
     const file = fileInput.files[0];
+    const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
     const fileExt = file.name.split('.').pop().toLowerCase();
-    status.innerText = "Processing file...";
+    const { jsPDF } = window.jspdf;
 
-    try {
-      if (action === 'direct') {
-        uploadToGoogleDrive(file, file.name, file.type || 'application/octet-stream');
-      } 
-      else if (action === 'pdf' && ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt)) {
-        const { jsPDF } = window.jspdf;
+    if (action === 'direct') {
+      return { blob: file, name: file.name, type: file.type || 'application/octet-stream' };
+    }
+    
+    else if (action === 'docx_to_pdf') {
+      const arrayBuffer = await file.arrayBuffer();
+      const res = await mammoth.extractRawText({ arrayBuffer });
+      const doc = new jsPDF();
+      const lines = doc.splitTextToSize(res.value || "", 180);
+      doc.text(lines, 15, 20);
+      return { blob: doc.output('blob'), name: `${baseName}.pdf`, type: 'application/pdf' };
+    }
+    
+    else if (action === 'xlsx_to_pdf') {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      let sheetText = "";
+      workbook.SheetNames.forEach(sheetName => {
+        const sheet = workbook.Sheets[sheetName];
+        sheetText += `--- Sheet: ${sheetName} ---\n` + XLSX.utils.sheet_to_txt(sheet) + "\n\n";
+      });
+      const doc = new jsPDF();
+      const lines = doc.splitTextToSize(sheetText, 180);
+      doc.text(lines, 15, 20);
+      return { blob: doc.output('blob'), name: `${baseName}.pdf`, type: 'application/pdf' };
+    }
+    
+    else if (action === 'txt_to_pdf') {
+      const textContent = await file.text();
+      const doc = new jsPDF();
+      const lines = doc.splitTextToSize(textContent, 180);
+      doc.text(lines, 15, 20);
+      return { blob: doc.output('blob'), name: `${baseName}.pdf`, type: 'application/pdf' };
+    }
+    
+    else if (action === 'img_to_pdf' && ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt)) {
+      return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = function (e) {
           const doc = new jsPDF();
-          doc.addImage(e.target.result, 'JPEG', 10, 10, 180, 160);
-          const pdfBlob = doc.output('blob');
-          uploadToGoogleDrive(pdfBlob, `${file.name.split('.')[0]}_converted.pdf`, 'application/pdf');
+          doc.addImage(e.target.result, 'JPEG', 15, 15, 180, 160);
+          resolve({ blob: doc.output('blob'), name: `${baseName}.pdf`, type: 'application/pdf' });
         };
+        reader.onerror = reject;
         reader.readAsDataURL(file);
-      }
-      else if (action === 'txt' && fileExt === 'docx') {
+      });
+    }
+    
+    else if (action === 'extract_txt') {
+      let textContent = "";
+      if (fileExt === 'docx') {
         const arrayBuffer = await file.arrayBuffer();
-        const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-        const txtBlob = new Blob([result.value], { type: 'text/plain' });
-        uploadToGoogleDrive(txtBlob, `${file.name.split('.')[0]}_extracted.txt`, 'text/plain');
-      }
-      else if (action === 'txt' && fileExt === 'pdf') {
+        const res = await mammoth.extractRawText({ arrayBuffer });
+        textContent = res.value;
+      } else if (fileExt === 'pdf') {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let extractedText = "";
-
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
-          extractedText += textContent.items.map(item => item.str).join(" ") + "\n";
+          const txt = await page.getTextContent();
+          textContent += txt.items.map(item => item.str).join(" ") + "\n";
         }
-        const txtBlob = new Blob([extractedText], { type: 'text/plain' });
-        uploadToGoogleDrive(txtBlob, `${file.name.split('.')[0]}_extracted.txt`, 'text/plain');
-      } 
-      else {
-        uploadToGoogleDrive(file, file.name, file.type || 'application/octet-stream');
+      } else {
+        textContent = await file.text();
       }
+      const blob = new Blob([textContent], { type: 'text/plain' });
+      return { blob, name: `${baseName}_extracted.txt`, type: 'text/plain' };
+    }
+
+    // Fallback default
+    return { blob: file, name: file.name, type: file.type || 'application/octet-stream' };
+  }
+
+  async function handleLocalProcess() {
+    const status = document.getElementById('status');
+    status.innerText = "Processing file locally...";
+    try {
+      const res = await generateProcessedFile();
+      processedBlob = res.blob;
+      processedFileName = res.name;
+
+      // Trigger local download link automatically
+      const url = URL.createObjectURL(processedBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = processedFileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      status.innerText = `✅ Success! "${processedFileName}" generated & downloaded locally.`;
     } catch (err) {
       console.error(err);
-      status.innerText = "Error processing file. Attempting direct upload instead...";
-      uploadToGoogleDrive(file, file.name, file.type || 'application/octet-stream');
+      status.innerText = "❌ Error processing file: " + err.message;
+    }
+  }
+
+  async function handleDriveUpload() {
+    const status = document.getElementById('status');
+    const uploadBtn = document.getElementById('uploadBtn');
+
+    try {
+      if (!processedBlob) {
+        status.innerText = "Processing file for upload...";
+        const res = await generateProcessedFile();
+        processedBlob = res.blob;
+        processedFileName = res.name;
+      }
+
+      const name = localStorage.getItem('savedName');
+      const phone = localStorage.getItem('savedPhone');
+
+      status.innerText = "Uploading directly to Google Drive...";
+      uploadBtn.disabled = true;
+
+      const reader = new FileReader();
+      reader.readAsDataURL(processedBlob);
+      reader.onloadend = async function () {
+        const base64Data = reader.result.split(',')[1];
+        const payload = {
+          customerName: name,
+          customerPhone: phone,
+          fileName: processedFileName,
+          mimeType: processedBlob.type || 'application/octet-stream',
+          fileData: base64Data
+        };
+
+        try {
+          const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          });
+          const result = await response.json();
+
+          if (result.status === 'success') {
+            status.innerText = "✅ Upload complete! File saved in Google Drive.";
+          } else {
+            status.innerText = "❌ Upload failed: " + result.message;
+          }
+        } catch (err) {
+          console.error(err);
+          status.innerText = "❌ Network error during Drive upload.";
+        } finally {
+          uploadBtn.disabled = false;
+        }
+      };
+    } catch (err) {
+      console.error(err);
+      status.innerText = "❌ Error: " + err.message;
+      uploadBtn.disabled = false;
     }
   }
 </script>
