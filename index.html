@@ -8,17 +8,18 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="logo.png">
 
-  <!-- Open Graph Meta Tags for WhatsApp & Social Previews -->
+  <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="Kenncom Cyber - Services & Document Portal">
   <meta property="og:description" content="Online applications, passport resizing, document conversions, and secure file uploads to Google Drive.">
   <meta property="og:image" content="logo.png">
   <meta property="og:type" content="website">
 
-  <!-- Required Libraries for In-Browser File Conversions & Rendering -->
+  <!-- Required Libraries for In-Browser Conversions & Exact PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
   <style>
     * { box-sizing: border-box; }
@@ -37,11 +38,14 @@
     input, select, button { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #475569; border-radius: 6px; background-color: #0f172a; color: #fff; }
     input:focus, select:focus { outline: none; border-color: #00d2ff; }
     
-    .btn-login { background: linear-gradient(135deg, #0052d4, #00d2ff); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-primary { background: linear-gradient(135deg, #0052d4, #00d2ff); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
     .btn-wa { background-color: #25D366; color: white; border: none; font-weight: bold; cursor: pointer; }
     .btn-download-local { background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
     .btn-upload { background: linear-gradient(135deg, #0052d4, #00d2ff); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
     button:disabled { background: #475569; cursor: not-allowed; opacity: 0.6; }
+
+    .auth-switch { text-align: center; margin-top: 15px; font-size: 0.85rem; color: #94a3b8; }
+    .auth-switch span { color: #00d2ff; cursor: pointer; font-weight: bold; text-decoration: underline; }
 
     /* Services Grid */
     .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px; }
@@ -85,18 +89,49 @@
 
 <div class="main-wrapper">
 
-  <!-- 1. LOGIN / SIGN-IN SECTION -->
-  <div class="card" id="loginCard">
-    <h2>Customer Login</h2>
-    <p style="font-size: 0.9rem; color: #94a3b8;">Enter your details below to access cyber services, application portals, and file upload tools.</p>
+  <!-- 1. AUTHENTICATION SECTION (SIGN UP / LOGIN) -->
+  <div class="card" id="authCard">
     
-    <label for="custName">Full Name:</label>
-    <input type="text" id="custName" placeholder="Enter full name">
+    <!-- SIGN UP FORM -->
+    <div id="signupFormContainer">
+      <h2>Customer Sign Up</h2>
+      <p style="font-size: 0.9rem; color: #94a3b8;">Create an account to access cyber services, document portals, and file uploads.</p>
+      
+      <label for="regName">Full Name:</label>
+      <input type="text" id="regName" placeholder="Enter full name">
 
-    <label for="custPhone">Phone Number:</label>
-    <input type="tel" id="custPhone" placeholder="e.g. +254712345678">
+      <label for="regPhone">Phone Number:</label>
+      <input type="tel" id="regPhone" placeholder="e.g. +254712345678">
 
-    <button class="btn-login" onclick="loginUser()">Access Services Portal</button>
+      <label for="regPassword">Create Strong Password:</label>
+      <input type="password" id="regPassword" placeholder="Min 8 chars: Upper, Lower, Number, Special">
+      <p style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Must contain uppercase, lowercase, number, and special character (e.g. @$!%*?&).</p>
+
+      <button class="btn-primary" onclick="handleSignUp()">Create Account</button>
+      
+      <div class="auth-switch">
+        Already have an account? <span onclick="switchAuthView('login')">Log in here</span>
+      </div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="loginFormContainer" class="hidden">
+      <h2>Customer Login</h2>
+      <p style="font-size: 0.9rem; color: #94a3b8;">Enter your phone number and secure password to log in.</p>
+
+      <label for="loginPhone">Phone Number:</label>
+      <input type="tel" id="loginPhone" placeholder="e.g. +254712345678">
+
+      <label for="loginPassword">Password:</label>
+      <input type="password" id="loginPassword" placeholder="Enter your password">
+
+      <button class="btn-primary" onclick="handleLogin()">Login to Portal</button>
+
+      <div class="auth-switch">
+        Don't have an account? <span onclick="switchAuthView('signup')">Sign up here</span>
+      </div>
+    </div>
+
   </div>
 
   <!-- MAIN PORTAL CONTENT (Revealed after Login) -->
@@ -109,7 +144,7 @@
           <h3 style="margin: 0;">Welcome, <span id="displayName" style="color: #00d2ff;"></span>!</h3>
           <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #94a3b8;">Logged in with <span id="displayPhone"></span></p>
         </div>
-        <button onclick="logoutUser()" style="width: auto; padding: 6px 12px; font-size: 0.8rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">Change User</button>
+        <button onclick="logoutUser()" style="width: auto; padding: 6px 12px; font-size: 0.8rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">Log Out</button>
       </div>
     </div>
 
@@ -123,7 +158,7 @@
         </div>
         <div class="service-item">
           <h4>Format Conversion</h4>
-          <p>Convert Word, Excel, Text, and Images to PDF or extract text instantly.</p>
+          <p>Convert Word, Excel, Text, and Images to PDF layout-accurate instantly.</p>
         </div>
         <div class="service-item">
           <h4>Direct Drive Upload</h4>
@@ -211,7 +246,7 @@
     <!-- 4. UPLOAD & CONVERSION TOOL SECTION -->
     <div class="card">
       <h3>Document Conversion & Drive Upload</h3>
-      <p style="font-size: 0.85rem; color: #94a3b8;">Drag and drop any file (Word, Excel, Text, PDF, Image), convert or extract it locally with instant download, or send it directly to Google Drive.</p>
+      <p style="font-size: 0.85rem; color: #94a3b8;">Drag and drop any file (Word, Excel, Text, PDF, Image), convert formatting accurately with instant download, or send it directly to Google Drive.</p>
       
       <label>Select File (.docx, .xlsx, .txt, .pdf, .jpg, .png):</label>
       
@@ -225,12 +260,15 @@
       <label for="convertTarget" style="margin-top: 15px;">Action / Target Conversion:</label>
       <select id="convertTarget">
         <option value="direct">Upload As-Is (No Conversion)</option>
-        <option value="docx_to_pdf">Word to PDF (.docx → .pdf)</option>
+        <option value="docx_to_pdf">Word to PDF (.docx → .pdf layout-accurate)</option>
         <option value="xlsx_to_pdf">Spreadsheet to PDF (.xlsx → .pdf)</option>
         <option value="txt_to_pdf">Text/Rich Text to PDF (.txt/.rtf → .pdf)</option>
         <option value="img_to_pdf">Image to PDF (.jpg/.png → .pdf)</option>
         <option value="extract_txt">Extract Content to Text (.txt)</option>
       </select>
+
+      <!-- Hidden container for rendering exact HTML layout for PDF conversion -->
+      <div id="renderContainer" style="display: none; background: white; color: black; padding: 30px; font-family: sans-serif;"></div>
 
       <!-- Step 1: Process and Download Locally -->
       <button class="btn-download-local" onclick="handleLocalProcess()">⚡ Process & Download Locally</button>
@@ -265,8 +303,8 @@
   window.onload = function() {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     
-    const savedName = localStorage.getItem('savedName');
-    const savedPhone = localStorage.getItem('savedPhone');
+    const savedName = localStorage.getItem('kenncom_userName');
+    const savedPhone = localStorage.getItem('kenncom_userPhone');
 
     if (savedName && savedPhone) {
       showPortal(savedName, savedPhone);
@@ -275,37 +313,84 @@
     setupDragAndDrop();
   };
 
-  function loginUser() {
-    const name = document.getElementById('custName').value.trim();
-    const phone = document.getElementById('custPhone').value.trim();
+  /* --- AUTHENTICATION & PASSWORD VALIDATION LOGIC --- */
+  function switchAuthView(view) {
+    if (view === 'signup') {
+      document.getElementById('signupFormContainer').classList.remove('hidden');
+      document.getElementById('loginFormContainer').classList.add('hidden');
+    } else {
+      document.getElementById('signupFormContainer').classList.add('hidden');
+      document.getElementById('loginFormContainer').classList.remove('hidden');
+    }
+  }
 
-    if (!name || !phone) {
-      alert("Please enter both your Name and Phone Number to log in.");
+  function validateStrongPassword(password) {
+    // Min 8 chars, at least one uppercase, one lowercase, one number, one special char
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    return regex.test(password);
+  }
+
+  function handleSignUp() {
+    const name = document.getElementById('regName').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const password = document.getElementById('regPassword').value;
+
+    if (!name || !phone || !password) {
+      alert("Please fill in all sign-up fields.");
       return;
     }
 
-    localStorage.setItem('savedName', name);
-    localStorage.setItem('savedPhone', phone);
+    if (!validateStrongPassword(password)) {
+      alert("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.");
+      return;
+    }
+
+    // Save credentials in localStorage
+    localStorage.setItem('kenncom_userName', name);
+    localStorage.setItem('kenncom_userPhone', phone);
+    localStorage.setItem('kenncom_userPass', password);
+
+    alert("Account successfully created!");
     showPortal(name, phone);
   }
 
+  function handleLogin() {
+    const phone = document.getElementById('loginPhone').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    const storedPhone = localStorage.getItem('kenncom_userPhone');
+    const storedPass = localStorage.getItem('kenncom_userPass');
+    const storedName = localStorage.getItem('kenncom_userName');
+
+    if (!storedPhone) {
+      alert("No account found. Please sign up first.");
+      switchAuthView('signup');
+      return;
+    }
+
+    if (phone === storedPhone && password === storedPass) {
+      showPortal(storedName, storedPhone);
+    } else {
+      alert("Invalid phone number or password. Please try again.");
+    }
+  }
+
   function logoutUser() {
-    localStorage.removeItem('savedName');
-    localStorage.removeItem('savedPhone');
     document.getElementById('portalContent').classList.add('hidden');
-    document.getElementById('loginCard').classList.remove('hidden');
+    document.getElementById('authCard').classList.remove('hidden');
+    switchAuthView('login');
   }
 
   function showPortal(name, phone) {
     document.getElementById('displayName').innerText = name;
     document.getElementById('displayPhone').innerText = phone;
-    document.getElementById('loginCard').classList.add('hidden');
+    document.getElementById('authCard').classList.add('hidden');
     document.getElementById('portalContent').classList.remove('hidden');
   }
 
   function sendWhatsApp() {
-    const name = localStorage.getItem('savedName');
-    const phone = localStorage.getItem('savedPhone');
+    const name = localStorage.getItem('kenncom_userName') || "Customer";
+    const phone = localStorage.getItem('kenncom_userPhone') || "";
 
     const msg = `Hello Kenncom Cyber, my name is ${name} (${phone}). I would like assistance with a document.`;
     window.location.href = `https://wa.me/${BUSINESS_PHONE}?text=${encodeURIComponent(msg)}`;
@@ -322,7 +407,7 @@
     fileInput.addEventListener('change', () => {
       if (fileInput.files.length > 0) {
         selectedFileName.textContent = `Selected: ${fileInput.files[0].name}`;
-        processedBlob = null; // Reset cache
+        processedBlob = null;
       }
     });
 
@@ -348,7 +433,7 @@
       if (files.length > 0) {
         fileInput.files = files;
         selectedFileName.textContent = `Selected: ${files[0].name}`;
-        processedBlob = null; // Reset cache
+        processedBlob = null;
       }
     });
   }
@@ -413,7 +498,7 @@
     downloadPassportLink.style.display = 'block';
   });
 
-  /* --- DOCUMENT PROCESSING & CONVERSION ENGINE --- */
+  /* --- LAYOUT-ACCURATE DOCUMENT CONVERSION ENGINE --- */
   async function generateProcessedFile() {
     const fileInput = document.getElementById('fileInput');
     const action = document.getElementById('convertTarget').value;
@@ -425,50 +510,106 @@
     const file = fileInput.files[0];
     const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
     const fileExt = file.name.split('.').pop().toLowerCase();
-    const { jsPDF } = window.jspdf;
+    const renderContainer = document.getElementById('renderContainer');
 
     if (action === 'direct') {
       return { blob: file, name: file.name, type: file.type || 'application/octet-stream' };
     }
     
+    // Accurate Word-to-PDF conversion preserving native layout via HTML rendering
     else if (action === 'docx_to_pdf') {
       const arrayBuffer = await file.arrayBuffer();
-      const res = await mammoth.extractRawText({ arrayBuffer });
-      const doc = new jsPDF();
-      const lines = doc.splitTextToSize(res.value || "", 180);
-      doc.text(lines, 15, 20);
-      return { blob: doc.output('blob'), name: `${baseName}.pdf`, type: 'application/pdf' };
+      const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+      
+      renderContainer.innerHTML = `
+        <div style="padding: 20px; font-family: 'Calibri', 'Arial', sans-serif; line-height: 1.6; color: #000;">
+          ${result.value}
+        </div>
+      `;
+      
+      const opt = {
+        margin:       10,
+        filename:     `${baseName}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      const pdfWorker = html2pdf().from(renderContainer).set(opt);
+      const pdfBlob = await pdfWorker.output('blob');
+      renderContainer.innerHTML = ""; // Clear
+      return { blob: pdfBlob, name: `${baseName}.pdf`, type: 'application/pdf' };
     }
     
     else if (action === 'xlsx_to_pdf') {
       const arrayBuffer = await file.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-      let sheetText = "";
+      let htmlTables = "";
       workbook.SheetNames.forEach(sheetName => {
         const sheet = workbook.Sheets[sheetName];
-        sheetText += `--- Sheet: ${sheetName} ---\n` + XLSX.utils.sheet_to_txt(sheet) + "\n\n";
+        htmlTables += `<h3>Sheet: ${sheetName}</h3>` + XLSX.utils.sheet_to_html(sheet) + "<br/>";
       });
-      const doc = new jsPDF();
-      const lines = doc.splitTextToSize(sheetText, 180);
-      doc.text(lines, 15, 20);
-      return { blob: doc.output('blob'), name: `${baseName}.pdf`, type: 'application/pdf' };
+
+      renderContainer.innerHTML = `
+        <div style="padding: 20px; font-family: sans-serif; color: #000;">
+          ${htmlTables}
+        </div>
+      `;
+
+      const opt = {
+        margin: 10,
+        filename: `${baseName}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      const pdfBlob = await html2pdf().from(renderContainer).set(opt).output('blob');
+      renderContainer.innerHTML = "";
+      return { blob: pdfBlob, name: `${baseName}.pdf`, type: 'application/pdf' };
     }
     
     else if (action === 'txt_to_pdf') {
       const textContent = await file.text();
-      const doc = new jsPDF();
-      const lines = doc.splitTextToSize(textContent, 180);
-      doc.text(lines, 15, 20);
-      return { blob: doc.output('blob'), name: `${baseName}.pdf`, type: 'application/pdf' };
+      renderContainer.innerHTML = `
+        <div style="padding: 20px; white-space: pre-wrap; font-family: monospace; color: #000;">
+          ${textContent}
+        </div>
+      `;
+
+      const opt = {
+        margin: 10,
+        filename: `${baseName}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      const pdfBlob = await html2pdf().from(renderContainer).set(opt).output('blob');
+      renderContainer.innerHTML = "";
+      return { blob: pdfBlob, name: `${baseName}.pdf`, type: 'application/pdf' };
     }
     
     else if (action === 'img_to_pdf' && ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt)) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = function (e) {
-          const doc = new jsPDF();
-          doc.addImage(e.target.result, 'JPEG', 15, 15, 180, 160);
-          resolve({ blob: doc.output('blob'), name: `${baseName}.pdf`, type: 'application/pdf' });
+          renderContainer.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+              <img src="${e.target.result}" style="max-width: 100%; height: auto;" />
+            </div>
+          `;
+          const opt = {
+            margin: 10,
+            filename: `${baseName}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          };
+          html2pdf().from(renderContainer).set(opt).output('blob').then(pdfBlob => {
+            renderContainer.innerHTML = "";
+            resolve({ blob: pdfBlob, name: `${baseName}.pdf`, type: 'application/pdf' });
+          }).catch(reject);
         };
         reader.onerror = reject;
         reader.readAsDataURL(file);
@@ -496,19 +637,17 @@
       return { blob, name: `${baseName}_extracted.txt`, type: 'text/plain' };
     }
 
-    // Fallback default
     return { blob: file, name: file.name, type: file.type || 'application/octet-stream' };
   }
 
   async function handleLocalProcess() {
     const status = document.getElementById('status');
-    status.innerText = "Processing file locally...";
+    status.innerText = "Processing file layout accurately...";
     try {
       const res = await generateProcessedFile();
       processedBlob = res.blob;
       processedFileName = res.name;
 
-      // Trigger local download link automatically
       const url = URL.createObjectURL(processedBlob);
       const a = document.createElement('a');
       a.href = url;
@@ -537,8 +676,8 @@
         processedFileName = res.name;
       }
 
-      const name = localStorage.getItem('savedName');
-      const phone = localStorage.getItem('savedPhone');
+      const name = localStorage.getItem('kenncom_userName');
+      const phone = localStorage.getItem('kenncom_userPhone');
 
       status.innerText = "Uploading directly to Google Drive...";
       uploadBtn.disabled = true;
