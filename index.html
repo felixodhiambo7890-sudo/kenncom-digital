@@ -1,1113 +1,596 @@
-<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KENNCOM DIGITAL CENTRE</title>
-  
-  <!-- GitHub Pages Secure Content Security Policy (CSP) Configuration Node -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://googleapis.com https://gstatic.com https://qrserver.com; style-src 'self' 'unsafe-inline' https://googleapis.com; script-src 'self' 'unsafe-inline'; img-src 'self' data: https://qrserver.com; connect-src 'self';">
+<script>
+  // --- APP-WIDE STATE MANAGEMENT MATRIX VARIABLES ---
+  let clickedItemsTotal = 0;
+  let globalAudioCtx = null;
+  let activeSessionTimerIntervalId = null;
+  let totalSecondsRemainingInSession = 0;
+  let currentActiveColorState = "cyberpunk";
+  let currentScaleStepIndex = 0;
 
-  <!-- Free Progressive Web App Interface Optimization Settings -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#08080a">
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="logo.png">
+  // --- ACCESSIBILITY TEXT SCALING COMPILATION CONFIG MAP ---
+  const fontScaleStepsMap = [
+    { label: "[ TEXT: 1x ]", bodySize: "11px", cardTitle: "12px", rowGap: "0.5rem 1rem" },
+    { label: "[ TEXT: 1.3x ]", bodySize: "14px", cardTitle: "15px", rowGap: "0.7rem 1.2rem" },
+    { label: "[ TEXT: 1.5x ]", bodySize: "16px", cardTitle: "17px", rowGap: "0.9rem 1.4rem" }
+  ];
 
-  <!-- Core Google Typography Server Pre-Fetch Links -->
-  <link rel="preconnect" href="https://googleapis.com">
-  <link rel="preconnect" href="https://gstatic.com" crossorigin>
-  <link href="https://googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  
-  <script>
-    // PWA Service Worker Client Execution Initializer
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(err => console.log("PWA SW Register Fault", err));
+  // --- SERVICE RUNTIME REQUIREMENT RULES DATABASE ---
+  const serviceProtocolDatabase = {
+    "ecitizen": { time: 20, items: ["National ID Card", "Active Phone (for OTP verification)"] },
+    "kra": { time: 15, items: ["KRA PIN Certificate", "Active Email Address", "Employment P9 Form (if filing)"] },
+    "ntsa": { time: 25, items: ["Original Logbook Copy", "National ID Scan", "TIMS/E-Citizen Credentials"] },
+    "good conduct": { time: 15, items: ["Original National ID Card", "Generated DCI Invoice Printout"] },
+    "company": { time: 60, items: ["Proposed 3 Business Names", "Director ID Scans & Passport Photos", "KRA PIN Scans"] },
+    "business name": { time: 30, items: ["Proposed Name", "Owner National ID Scan"] },
+    "etims": { time: 40, items: ["KRA iTax Password", "Business Registration Certificate (Certificate of Incorporation)"] },
+    "cv": { time: 45, items: ["Previous CV Draft / Academic Certificates", "List of Professional Referees"] },
+    "resume": { time: 45, items: ["Previous CV Draft / Academic Certificates", "List of Professional Referees"] },
+    "university": { time: 30, items: ["KCSE Result Slip Scan", "National ID / Birth Certificate Scan"] },
+    "kuccps": { time: 20, items: ["KCSE Index Number", "Portal Password Token"] },
+    "helb": { time: 35, items: ["Parent ID / Death Certificate Scan", "Guarantor ID Copies", "Smart Phone Number"] },
+    "passport photo": { time: 10, items: ["Physical Presence at Rongo Hub Studio"] }
+  };
+
+  // --- CODES EXPIRY LIFE CYCLES DATABASE MAP ---
+  const validationLifespanDatabase = {
+    "compliance": "Tax Compliance Certificates (TCC) run for exactly 12 months from generation.",
+    "good conduct": "DCI Police Clearance certificates are traditionally valid for 12 months.",
+    "tims renewal": "NTSA driver license allocations require renewal loops every 1 or 3 years.",
+    "business name": "Business Name Registrations hold reservation locks for 30 days before compilation.",
+    "company reg": "CR12 company structure documents state continuous registry until share swaps happen."
+  };
+
+  // --- ACCIDENTAL DATA REFRESH PREVENTION LAYER ---
+  window.addEventListener('beforeunload', (event) => {
+    const bw = parseInt(document.getElementById('bwPages')?.value) || 0;
+    const color = parseInt(document.getElementById('colorPages')?.value) || 0;
+    const portal = parseInt(document.getElementById('portalFee')?.value) || 0;
+    if (bw > 0 || color > 0 || portal > 0 || clickedItemsTotal > 0) {
+      event.preventDefault();
+      event.returnValue = 'You have a pending estimate invoice. Are you sure you want to leave?';
     }
-  </script>
-  
-  <style id="matrixThemeStyles">
-    /* Core dynamic root color configuration arrays mapping */
-    :root {
-      --cyber-glow-primary: #f472b6;
-      --cyber-glow-secondary: #22d3ee;
-      --cyber-text-accent: #a78bfa;
-      --cyber-bg-black: #08080a;
+  });
+
+  // --- INTERACTIVE WEBAUDIO SYS CLICK SYNTHESIZER ---
+  function playClick() {
+    try {
+      if (!globalAudioCtx) globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
+      const osc = globalAudioCtx.createOscillator(); 
+      const gainNode = globalAudioCtx.createGain();
+      osc.type = 'triangle'; 
+      osc.frequency.setValueAtTime(140, globalAudioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(700, globalAudioCtx.currentTime + 0.02);
+      gainNode.gain.setValueAtTime(0.03, globalAudioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.03);
+      osc.connect(gainNode); 
+      gainNode.connect(globalAudioCtx.destination);
+      osc.start(); 
+      osc.stop(globalAudioCtx.currentTime + 0.04);
+    } catch (e) { console.log('Audio deferred.'); }
+  }
+
+  // --- INTERACTIVE SELECTION ITEM CLICK NODE TRACKER ---
+  function toggleItemNode(element) {
+    const value = parseInt(element.getAttribute('data-val')) || 0;
+    if (element.classList.contains('active-node')) {
+      element.classList.remove('active-node');
+      clickedItemsTotal -= value;
+    } else {
+      element.classList.add('active-node');
+      clickedItemsTotal += value;
     }
     
-    /* Reset bounds and enforce clean monospace font fallbacks */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { 
-      background-color: var(--cyber-bg-black); 
-      font-family: 'Share Tech Mono', ui-monospace, monospace; 
-      color: var(--cyber-text-accent); 
-      line-height: 1.4; 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      padding-top: 75px; 
-      padding-bottom: 40px;
-      overflow-x: hidden; 
-      position: relative; 
+    const searchInput = document.getElementById('cyberSearch');
+    if (searchInput && searchInput.value !== '') {
+      searchInput.value = '';
+      filterCyberNodes();
     }
-    #matrixCanvas { 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100vw; 
-      height: 100vh; 
-      z-index: -1; 
-      opacity: 0.12; 
-      pointer-events: none; 
-    }
-    
-    .dashboard-envelope { 
-      width: 100%; 
-      max-width: 1100px; 
-      margin: 0 auto; 
-      padding: 0 16px; 
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      position: relative; 
-      z-index: 10; 
-    }
-    
-    .font-cyber { font-family: 'Orbitron', system-ui, -apple-system, sans-serif; }
-    .glow-pink { color: var(--cyber-glow-primary) !important; text-shadow: 0 0 10px var(--cyber-glow-primary) !important; }
-    .glow-cyan { color: var(--cyber-glow-secondary) !important; text-shadow: 0 0 10px var(--cyber-glow-secondary) !important; }
-    .glow-orange { color: #fb923c; text-shadow: 0 0 10px rgba(251, 146, 60, 0.4); }
+    calculateTotal();
+  }
 
-    .top-header {
-      width: 100%;
-      background-color: rgba(6, 6, 8, 0.96);
-      border-bottom: 1px solid rgba(167, 139, 250, 0.2);
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 100;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      backdrop-filter: blur(8px);
-    }
-    .top-header .logo-fallback { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 14px; color: #22d3ee; letter-spacing: 2px; }
-    .top-header nav { display: flex; align-items: center; gap: 14px; }
-    .top-header nav a { color: #9ca3af; text-decoration: none; font-size: 11px; letter-spacing: 1px; transition: color 0.2s; }
-    .top-header nav a:hover { color: #22d3ee; }
+  // --- WHOLE PAGE RECURSIVE REAL-TIME TYPEWRITER ENGINE ---
+  function initializeWholePageTypewriterEngine() {
+    const globalTypingSpeedMs = 6; 
+    let elementsToAnimateArray = [];
 
-    .hero-box { padding: 20px 0 10px 0; text-align: center; }
-    .hero-badge { display: inline-block; padding: 4px 12px; border: 1px solid rgba(34, 211, 238, 0.3); background: rgba(34, 211, 238, 0.05); color: #22d3ee; font-size: 11px; border-radius: 4px; margin-bottom: 14px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
-    
-    .widget-layout-row {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
-      width: 100%;
-    }
+    function recursivelyLocateTextNodes(currentNode) {
+      const blacklistedTags = ['SCRIPT', 'STYLE', 'CANVAS', 'INPUT', 'SELECT', 'TEXTAREA', 'OPTION'];
+      if (blacklistedTags.includes(currentNode.tagName)) return;
+      if (currentNode.classList && currentNode.classList.contains('price-tag')) return;
 
-    @media (max-width: 820px) {
-      .widget-layout-row { grid-template-columns: 1fr; gap: 16px; }
-    }
-
-    .calc-box { 
-      background: rgba(12, 12, 16, 0.95); 
-      border: 1px solid rgba(167, 139, 250, 0.2); 
-      padding: 16px; 
-      border-radius: 6px; 
-      text-align: left;
-      width: 100%;
-      height: 100%;
-    }
-    .calc-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12px; }
-    .calc-input { width: 70px; background: #000; border: 1px solid #27272a; text-align: center; color: #22d3ee; font-size: 12px; padding: 4px; outline: none; border-radius: 4px; }
-    .calc-input:focus { border-color: #22d3ee; }
-    .calc-select { background: #000; border: 1px solid #27272a; color: #22d3ee; font-size: 12px; padding: 4px; outline: none; border-radius: 4px; width: 140px; }
-    .calc-total-line { border-top: 1px dashed rgba(167, 139, 250, 0.3); padding-top: 12px; margin-top: 12px; display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; }
-    
-    .console-logger { background: rgba(10, 10, 14, 0.98); border: 1px solid rgba(52, 211, 153, 0.25); padding: 16px; width: 100%; text-align: left; font-size: 12px; color: #34d399; border-radius: 6px; box-shadow: inset 0 0 10px rgba(52, 211, 153, 0.05); }
-    .search-wrapper { margin: 10px auto 20px auto; position: relative; width: 100%; max-width: 500px; text-align: center; }
-    .search-input { background: #000; border: 1px solid rgba(167, 139, 250, 0.3); padding: 10px 16px; width: 100%; text-align: center; color: #22d3ee; font-size: 13px; border-radius: 4px; outline: none; transition: border-color 0.2s; }
-    .search-input:focus { border-color: #22d3ee; }
-    
-    .dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; }
-    @media (max-width: 768px) {
-      .dashboard-grid { grid-template-columns: 1fr; gap: 16px; }
-    }
-
-    .cyber-card { background: rgba(12, 12, 16, 0.95); border: 1px solid rgba(167, 139, 250, 0.18); padding: 18px; border-radius: 6px; height: 100%; }
-    .card-title { font-size: 12px; font-weight: bold; border-bottom: 1px solid #1f1f24; padding-bottom: 8px; margin-bottom: 14px; text-align: center; letter-spacing: 1.5px; text-transform: uppercase; }
-    .two-col-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem 1rem; text-align: left; list-style: none; }
-
-    .item { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--cyber-text-accent); transition: all 0.2s ease; cursor: pointer; user-select: none; padding: 4px 6px; border-radius: 4px; }
-    .item:hover { background: rgba(34, 211, 238, 0.08); color: #fff; }
-    .item.active-node { color: #fb923c !important; background: rgba(251, 146, 60, 0.12) !important; border-left: 3px solid #fb923c; padding-left: 8px; font-weight: bold; text-shadow: 0 0 8px rgba(251, 146, 60, 0.3); }
-    .price-tag { color: #22d3ee; font-weight: bold; float: right; margin-right: 2px; }
-    
-    .cursor-blink::after { content: '_'; animation: blink 0.8s infinite; }
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-    #secureCommsLink { transition: all 0.2s ease !important; }
-    #secureCommsLink:hover { background: rgba(34, 211, 238, 0.18) !important; border-color: #22d3ee !important; color: #fff !important; box-shadow: 0 0 12px rgba(34, 211, 238, 0.4) !important; text-shadow: 0 0 8px #fff !important; }
-    #secureCommsLink:active { background: rgba(251, 146, 60, 0.15) !important; border-color: #fb923c !important; color: #fb923c !important; transform: scale(0.98); }
-  </style>
-</head>
-<body onclick="playClick()">
-
-  <div id="offlineHardwareBannerAlert" style="display: none; width: 100%; background: #ef4444; color: #fff; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: bold; text-align: center; padding: 8px; position: fixed; top: 0; left: 0; z-index: 999; letter-spacing: 1px;">
-    ⚠️ NETWORK LINK INTERRUPTED // HARDWARE OPERATING IN LOCAL MODE CACHE
-  </div>
-
-  <canvas id="matrixCanvas"></canvas>
-  <header class="top-header">
-    <div class="logo-wrapper" style="display: flex; align-items: center; gap: 10px;">
-      <span class="logo-fallback">[ KENNCOM CYBER ]</span>
-    </div>
-    <nav>
-      <span onclick="toggleSystemUIVisualTheme()" style="cursor: pointer; font-size: 10px; background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); padding: 4px 8px; border-radius: 4px; color: #22d3ee; font-weight: bold; font-family: 'Orbitron', sans-serif;">[ THEME ]</span>
-      <span onclick="cycleAccessibilityTextScale()" style="cursor: pointer; font-size: 10px; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); padding: 4px 8px; border-radius: 4px; color: #a78bfa; font-weight: bold; font-family: 'Orbitron', sans-serif;" id="textScaleIndicatorNode">[ TEXT: 1x ]</span>
-      <a href="#home">HOME</a>
-      <a href="#estimator">ESTIMATOR</a>
-      <a href="#matrix-services">SERVICES</a>
-    </nav>
-  </header>
-
-  <div class="dashboard-envelope">
-    
-    <section id="home" class="hero-box">
-      <div id="statusBadge" class="hero-badge">CHECKING SYSTEM CLOCK...</div>
-      
-      <div style="font-size: 11px; color: #4b5563; margin-bottom: 16px; letter-spacing: 1px; text-transform: uppercase; font-weight: bold;">
-        [ SECURE RUNTIME LINK // METRIC HARMONIZED VIA AFRICA/NAIROBI CORE ]
-      </div>
-
-      <h1 class="font-cyber glow-pink" style="font-size: 26px; font-weight: 900; letter-spacing: 3px; margin-bottom: 16px; text-transform: uppercase;">KENNCOM DIGITAL CORE</h1>
-      
-      <div class="console-logger">
-        <div id="typingText" class="cursor-blink" style="min-height: 50px; line-height: 1.5; color: #34d399;">
-          SYSTEM BOOT COMPLETE // INITIALIZING DIR NODES...<br>PWA LOCAL CACHE SYNCHRONIZED SUCCESFULLY.
-        </div>
-      </div>
-    </section>
-
-    <!-- CONTAINER BLOCK FOR CORE COMPACT CONTROLS -->
-    <div class="widget-layout-row" id="estimator">
-      
-      <!-- SUB-BLOCK: INPUT CALCULATION FORM CONTAINER -->
-      <div class="calc-box">
-        <h3 class="font-cyber glow-cyan" style="font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 14px; letter-spacing: 1px;">COST ESTIMATOR MODULE <span id="nodeCounter" style="color: #fb923c; margin-left: 5px;"></span></h3>
-        
-        <div class="calc-row" style="margin-bottom: 14px; border-bottom: 1px dashed rgba(34,211,238,0.15); padding-bottom: 8px;">
-          <span style="color: #22d3ee; font-weight: bold;">CLIENT ALLOCATION ID:</span>
-          <input type="text" id="clientMetadataName" placeholder="Type name or code..." oninput="calculateTotal()" class="search-input" style="max-width: 160px; margin: 0; text-align: left; padding: 4px 8px; font-size: 11px;">
-        </div>
-
-        <div class="calc-row">
-          <span style="color: #9ca3af;">B&W Prints (KES 10/pg):</span>
-          <input type="number" id="bwPages" value="0" min="0" inputmode="numeric" oninput="calculateTotal()" class="calc-input">
-        </div>
-        <div class="calc-row">
-          <span style="color: #9ca3af;">Color Prints (KES 20/pg):</span>
-          <input type="number" id="colorPages" value="0" min="0" inputmode="numeric" oninput="calculateTotal()" class="calc-input">
-        </div>
-        <div class="calc-row">
-          <span style="color: #9ca3af;">Portal Access Base Fees:</span>
-          <select id="portalFee" onchange="calculateTotal()" class="calc-select">
-            <option value="0">None</option>
-            <option value="150">KRA Filing (KES 150)</option>
-            <option value="200">eCitizen App (KES 200)</option>
-            <option value="500">CV Blueprint (KES 500)</option>
-          </select>
-        </div>
-        <div class="calc-total-line">
-          <span style="color: #fff; font-size: 11px; text-transform: uppercase;">Total Estimate:</span>
-          <span class="font-cyber glow-orange">KES <span id="grandTotal">0</span></span>
-        </div>
-        
-        <button type="button" onclick="wipeEntireSystemEstimates()" style="width: 100%; margin-top: 14px; background: rgba(244,114,182,0.06); border: 1px solid rgba(244,114,182,0.25); color: #f472b6; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: bold; padding: 8px; border-radius: 4px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;">
-          [ ⚡ EXECUTE SYSTEM WIPE RESET ]
-        </button>
-      </div>
-      <!-- SUB-BLOCK: INTERACTIVE COMMS VECTOR AND ACTIONS -->
-      <div class="calc-box" style="border-color: rgba(34, 211, 238, 0.25); text-align: center; display: flex; flex-direction: column; justify-content: center;">
-        <h3 class="font-cyber glow-cyan" style="font-size: 11px; font-weight: bold; margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase;">LIVE MONITOR-TO-PHONE VECTOR</h3>
-        
-        <div style="display: flex; justify-content: center; margin-bottom: 14px; background: #fff; padding: 10px; border-radius: 4px; width: 140px; height: 140px; margin: 0 auto 14px auto; box-shadow: 0 0 15px rgba(34,211,238,0.2);">
-          <img id="dynamicLiveMonitorQRCode" src="https://qrserver.com" style="width: 120px; height: 120px;" alt="Uplink QR Matrix">
-        </div>
-        
-        <div style="margin-bottom: 10px; width: 100%;">
-          <a id="secureCommsLink" href="https://wa.me/qr/MHU7ZINMP2CVH1" target="_blank" style="display: inline-block; width: 100%; background: rgba(34, 211, 238, 0.08); border: 1px solid rgba(34, 211, 238, 0.3); color: #22d3ee; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: bold; padding: 9px; border-radius: 4px; text-decoration: none; letter-spacing: 1px; text-transform: uppercase;">
-            [ 💬 CLICK HERE TO CHAT ]
-          </a>
-        </div>
-        
-        <p style="font-size: 11px; color: #a78bfa; line-height: 1.3; margin: 0;">Scan via camera matrix or strike uplink key to pass receipt payloads straight into WhatsApp channels.</p>
-      </div>
-    </div>
-
-    <!-- CONTAINER BLOCK FOR INTERACTIVE UTILITIES -->
-    <div class="widget-layout-row">
-      
-      <!-- SUB-BLOCK: DYNAMIC TEXT PAYLOAD SANITIZER -->
-      <div class="calc-box">
-        <h3 class="font-cyber glow-cyan" style="font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 12px; letter-spacing: 1px;">INPUT DATA SANITIZER MATRIX</h3>
-        <div style="margin-bottom: 10px;">
-          <textarea id="rawSanitizerInput" placeholder="Paste messy customer text, numbers, or copy logs here..." style="width: 100%; height: 65px; background: #000; border: 1px solid rgba(167, 139, 250, 0.25); color: #fff; font-family: monospace; font-size: 11px; padding: 6px; border-radius: 4px; outline: none; resize: none;"></textarea>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px;">
-          <button type="button" onclick="sanitizeDataPayload('uppercase')" style="background: rgba(34,211,238,0.05); border: 1px solid rgba(34,211,238,0.2); color: #22d3ee; font-family: 'Share Tech Mono', monospace; font-size: 10px; padding: 6px; border-radius: 4px; cursor: pointer;">[ A-Z NAME ]</button>
-          <button type="button" onclick="sanitizeDataPayload('phone')" style="background: rgba(34,211,238,0.05); border: 1px solid rgba(34,211,238,0.2); color: #22d3ee; font-family: 'Share Tech Mono', monospace; font-size: 10px; padding: 6px; border-radius: 4px; cursor: pointer;">[ PHONE 10D ]</button>
-          <button type="button" onclick="sanitizeDataPayload('clean-text')" style="background: rgba(34,211,238,0.05); border: 1px solid rgba(34,211,238,0.2); color: #22d3ee; font-family: 'Share Tech Mono', monospace; font-size: 10px; padding: 6px; border-radius: 4px; cursor: pointer;">[ STRIP PUNC ]</button>
-        </div>
-        <button type="button" onclick="copySanitizedPayloadToClipboard()" style="width: 100%; background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.25); color: #34d399; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: bold; padding: 8px; border-radius: 4px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;">[ COPY SANITIZED STRING ]</button>
-      </div>
-
-      <!-- SUB-BLOCK: TIME ALLOCATION MANAGEMENT UNIT -->
-      <div class="calc-box" style="border-color: rgba(244, 114, 182, 0.25);">
-        <h3 class="font-cyber glow-pink" style="font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 12px; letter-spacing: 1px;">LEISURE SESSION TRACKER</h3>
-        <div class="calc-row" style="margin-bottom: 12px;">
-          <span style="color: #9ca3af;">ALLOCATE TIME BLOCK:</span>
-          <select id="sessionTimeDurationSelect" class="calc-select" style="width: 130px;">
-            <option value="15">15 Minutes</option>
-            <option value="30">30 Minutes</option>
-            <option value="60" selected>1 Hour (60 Mins)</option>
-            <option value="120">2 Hours (120 Mins)</option>
-            <option value="180">3 Hours (180 Mins)</option>
-          </select>
-        </div>
-        <div class="calc-row" style="margin-bottom: 12px; justify-content: center; background: #000; padding: 8px; border-radius: 4px; border: 1px dashed rgba(167, 139, 250, 0.15);">
-          <span id="sessionTimerDisplayClock" class="font-cyber glow-orange" style="font-size: 22px; font-weight: 900; letter-spacing: 2px;">00:00:00</span>
-        </div>
-        <div style="display: flex; gap: 8px;">
-          <button type="button" onclick="initializeLeisureCountdownTimer()" style="flex: 1; background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.3); color: #34d399; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: bold; padding: 6px; border-radius: 4px; cursor: pointer; letter-spacing: 1px;">[ INITIALIZE ]</button>
-          <button type="button" onclick="terminateLeisureCountdownTimer()" style="flex: 1; background: rgba(244, 114, 182, 0.1); border: 1px solid rgba(244, 114, 182, 0.3); color: #f472b6; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: bold; padding: 6px; border-radius: 4px; cursor: pointer; letter-spacing: 1px;">[ TERMINATE ]</button>
-        </div>
-      </div>
-    </div>
-    <!-- CONTAINER BLOCK FOR DIAGNOSTICS & SYSTEM METRICS -->
-    <div class="widget-layout-row">
-      
-      <!-- DIAGNOSTIC LINK PANEL -->
-      <div class="calc-box" style="border-color: rgba(34, 211, 238, 0.15); background: rgba(10, 10, 14, 0.95);">
-        <h3 class="font-cyber glow-cyan" style="font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 10px; letter-spacing: 1px;">TERMINAL LATENCY DIAGNOSTIC</h3>
-        <div class="calc-row" style="margin-bottom: 8px;">
-          <span style="color: #9ca3af;">MATRIX BOUND VECTOR:</span>
-          <span id="pingStatusText" style="color: #34d399; font-weight: bold;">INITIALIZING...</span>
-        </div>
-        <div style="width: 100%; background: #000; height: 5px; border-radius: 2px; overflow: hidden; position: relative; margin-bottom: 10px;">
-          <div id="pingProgressBar" style="width: 0%; background: #22d3ee; height: 100%; transition: width 0.4s ease;"></div>
-        </div>
-        <button type="button" onclick="triggerNetworkDiagnosticPing()" style="width: 100%; background: rgba(34,211,238,0.05); border: 1px solid rgba(34,211,238,0.2); color: #22d3ee; font-family: 'Orbitron', sans-serif; font-size: 10px; padding: 6px; border-radius: 4px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;">
-          [ RUN CONNECTION DIAGNOSTIC ]
-        </button>
-      </div>
-
-      <!-- SYSTEM LIFECYCLE INFO METRICS PANEL -->
-      <div id="expiryAndTokenBox" class="calc-box" style="display: none; border-color: rgba(244, 114, 182, 0.2); background: rgba(15, 10, 12, 0.95);">
-        <h3 class="font-cyber glow-pink" style="font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 10px; letter-spacing: 1px;">SYSTEM LIFECYCLE METRICS</h3>
-        <div style="text-align: left; margin-bottom: 10px;">
-          <span style="color: #f472b6; font-size: 10px; font-weight: bold; display: block; margin-bottom: 4px;">[ℹ️] DOCUMENT VALIDATION LIFE CYCLES:</span>
-          <ul id="expiryMetricsList" style="list-style: none; font-size: 11px; color: #a78bfa; padding-left: 5px; line-height: 1.4;"></ul>
-        </div>
-        <button type="button" onclick="executeClipboardTokenSnapshotCopy()" style="width: 100%; background: rgba(167, 139, 250, 0.08); border: 1px solid rgba(167, 139, 250, 0.25); color: #a78bfa; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: bold; padding: 6px; border-radius: 4px; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;">[ 📋 COPY ORDER REFERENCE TOKEN ]</button>
-      </div>
-
-      <!-- SERVICE PROTOCOLS MATRIX PANEL -->
-      <div id="requirementsBox" class="calc-box" style="display: none; border-color: rgba(251, 146, 60, 0.2); background: rgba(18, 11, 7, 0.95);">
-        <h3 class="font-cyber glow-orange" style="font-size: 11px; font-weight: bold; text-align: center; margin-bottom: 10px; letter-spacing: 1px;">REQUIRED PROTOCOLS & ESTIMATED TIME</h3>
-        <div class="calc-row" style="margin-bottom: 8px;">
-          <span style="color: #9ca3af;">TOTAL PROCESSING TIME:</span>
-          <span id="estimatedDurationText" style="color: #fb923c; font-weight: bold;">0 MINS</span>
-        </div>
-        <div style="text-align: left;">
-          <span style="color: #fff; font-size: 10px; font-weight: bold; display: block; margin-bottom: 4px;">[❗] MANDATORY ATTACHMENT CHECKLIST:</span>
-          <ul id="checklistItemsList" style="list-style: none; font-size: 11px; color: #a78bfa; padding-left: 5px; line-height: 1.4;"></ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- MAIN DIRECTORIES INTERFACE -->
-    <section id="matrix-services" style="width: 100%;">
-      <div class="search-wrapper">
-        <h2 class="font-cyber" style="font-size: 15px; font-weight: bold; color: #fff; letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase;">SYSTEM OPERATIONAL DIRECTORIES</h2>
-        <input type="text" id="cyberSearch" onkeyup="filterCyberNodes()" placeholder="Type to search all services..." class="search-input">
-        <span id="clearSearchBtn" onclick="forceResetSearch()" style="position: absolute; right: 15px; top: 38px; color: #f472b6; cursor: pointer; display: none; font-size: 12px; font-weight: bold; z-index: 20;">X</span>
-      </div>
-
-      <div class="dashboard-grid" id="matrixContainer">
-        
-        <!-- NODE 00: QUICK MACRO BUNDLE PRESETS -->
-        <div class="cyber-card" style="border-color: rgba(251, 146, 60, 0.25);">
-          <div class="card-title font-cyber glow-orange">MACRO BUNDLE PRESETS</div>
-          <div style="display: grid; grid-template-columns: 1fr; gap: 8px; padding: 2px 0;">
-            <button type="button" onclick="injectBundlePresetNodes(['CV drafting', 'Resume drafting', 'Black & white print'])" style="background: rgba(251, 146, 60, 0.05); border: 1px solid rgba(251, 146, 60, 0.2); color: #fb923c; font-family: 'Share Tech Mono', monospace; font-size: 11px; padding: 8px; border-radius: 4px; text-align: left; cursor: pointer; display: flex; justify-content: space-between;"><span>> JOB SEEKER BACKPACK</span><span style="color: #fff; font-weight: bold;">[APPLY]</span></button>
-            <button type="button" onclick="injectBundlePresetNodes(['KRA iTax filing', 'Business Name Reg', 'eTIMS onboarding'])" style="background: rgba(34, 211, 238, 0.05); border: 1px solid rgba(34, 211, 238, 0.2); color: #22d3ee; font-family: 'Share Tech Mono', monospace; font-size: 11px; padding: 8px; border-radius: 4px; text-align: left; cursor: pointer; display: flex; justify-content: space-between;"><span>> ENTERPRISE CORE STARTUP</span><span style="color: #fff; font-weight: bold;">[APPLY]</span></button>
-            <button type="button" onclick="injectBundlePresetNodes(['KUCCPS portal access', 'HELB loan application', 'Photocopying'])" style="background: rgba(244, 114, 182, 0.05); border: 1px solid rgba(244, 114, 182, 0.2); color: #f472b6; font-family: 'Share Tech Mono', monospace; font-size: 11px; padding: 8px; border-radius: 4px; text-align: left; cursor: pointer; display: flex; justify-content: space-between;"><span>> ACADEMIC ACQUISITION</span><span style="color: #fff; font-weight: bold;">[APPLY]</span></button>
-          </div>
-        </div>
-        <!-- NODE 00-B: PHYSICAL TRAFFIC TIMELINE -->
-        <div class="cyber-card" style="border-color: rgba(34, 211, 238, 0.25);">
-          <div class="card-title font-cyber glow-cyan">RONGO HUB DENSITY CHART</div>
-          <p style="font-size: 11px; color: #9ca3af; margin-bottom: 12px; text-align: center;">LOCAL VISITOR DENSITY FLOW ESTIMATION VALUES</p>
-          <div style="display: flex; flex-direction: column; gap: 7px;">
-            <div style="font-size: 11px; display: flex; align-items: center; justify-content: space-between;"><span style="width: 75px; color: #a78bfa;">07:00-10:00</span><div style="flex-grow: 1; background: #000; height: 8px; margin: 0 10px; border-radius: 4px; overflow: hidden;"><div style="width: 25%; background: #34d399; height: 100%;"></div></div><span style="color: #34d399; font-size: 10px; font-weight: bold; width: 55px; text-align: right;">LOW</span></div>
-            <div style="font-size: 11px; display: flex; align-items: center; justify-content: space-between;"><span style="width: 75px; color: #a78bfa;">10:00-13:00</span><div style="flex-grow: 1; background: #000; height: 8px; margin: 0 10px; border-radius: 4px; overflow: hidden;"><div style="width: 65%; background: #fb923c; height: 100%;"></div></div><span style="color: #fb923c; font-size: 10px; font-weight: bold; width: 55px; text-align: right;">MODERATE</span></div>
-            <div style="font-size: 11px; display: flex; align-items: center; justify-content: space-between;"><span style="width: 75px; color: #a78bfa;">13:00-16:00</span><div style="flex-grow: 1; background: #000; height: 8px; margin: 0 10px; border-radius: 4px; overflow: hidden;"><div style="width: 95%; background: #f472b6; height: 100%;"></div></div><span style="color: #f472b6; font-size: 10px; font-weight: bold; width: 55px; text-align: right;">PEAK RUSH</span></div>
-            <div style="font-size: 11px; display: flex; align-items: center; justify-content: space-between;"><span style="width: 75px; color: #a78bfa;">16:00-19:00</span><div style="flex-grow: 1; background: #000; height: 8px; margin: 0 10px; border-radius: 4px; overflow: hidden;"><div style="width: 45%; background: #fb923c; height: 100%;"></div></div><span style="color: #fb923c; font-size: 10px; font-weight: bold; width: 55px; text-align: right;">STEADY</span></div>
-          </div>
-          <div style="border-top: 1px dashed rgba(34,211,238,0.15); margin-top: 10px; padding-top: 8px; font-size: 11px; color: #9ca3af; text-align: center; line-height: 1.3;"><span style="color: #22d3ee;">* OPERATOR INSIGHT:</span> Arrive prior to 10:00 AM EAT for optimal queue turnaround vectors.</div>
-        </div>
-
-        <!-- NODE 01: Government Portals -->
-        <div class="cyber-card">
-          <div class="card-title font-cyber glow-pink">GOVERNMENT PORTALS</div>
-          <ul class="two-col-list">
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> eCitizen applications <span class="price-tag">K200</span></li>
-            <li class="item" data-val="150" onclick="toggleItemNode(this)">> KRA iTax filing <span class="price-tag">K150</span></li>
-            <li class="item" data-val="150" onclick="toggleItemNode(this)">> KRA PIN registration <span class="price-tag">K150</span></li>
-            <li class="item" data-val="150" onclick="toggleItemNode(this)">> Tax Compliance Certificates <span class="price-tag">K150</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> NTSA TIMS renewal <span class="price-tag">K200</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> NTSA logbook search <span class="price-tag">K200</span></li>
-            <li class="item" data-val="300" onclick="toggleItemNode(this)">> NTSA vehicle transfer <span class="price-tag">K300</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Number plate apply <span class="price-tag">K200</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> SHA registration <span class="price-tag">K100</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> NHIF services <span class="price-tag">K100</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> NSSF services <span class="price-tag">K100</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> HELB compliance <span class="price-tag">K200</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> DCI Good Conduct <span class="price-tag">K200</span></li>
-            <li class="item" data-val="300" onclick="toggleItemNode(this)">> Business Name Reg <span class="price-tag">K300</span></li>
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> Company Reg (CR12) <span class="price-tag">K500</span></li>
-            <li class="item" data-val="400" onclick="toggleItemNode(this)">> Beneficial Ownership <span class="price-tag">K400</span></li>
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> eTIMS onboarding <span class="price-tag">K500</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> eTIMS invoice generation <span class="price-tag">K100</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> TSC wealth declaration <span class="price-tag">K200</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> TSC promotion apply <span class="price-tag">K200</span></li>
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> TSC payslip download <span class="price-tag">K50</span></li>
-            <li class="item" data-val="300" onclick="toggleItemNode(this)">> Simba/iCMS tracking <span class="price-tag">K300</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> e-Signatures setup <span class="price-tag">K200</span></li>
-          </ul>
-        </div>
-        <!-- NODE 02: Academic Hub -->
-        <div class="cyber-card">
-          <div class="card-title font-cyber glow-cyan">ACADEMIC HUB</div>
-          <ul class="two-col-list">
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> KUCCPS portal access school <span class="price-tag">K200</span></li>
-            <li class="item" data-val="300" onclick="toggleItemNode(this)">> University applications school <span class="price-tag">K300</span></li>
-            <li class="item" data-val="250" onclick="toggleItemNode(this)">> Higher Ed Financing helb school <span class="price-tag">K250</span></li>
-            <li class="item" data-val="250" onclick="toggleItemNode(this)">> HELB loan application helb school <span class="price-tag">K250</span></li>
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> School portal access school <span class="price-tag">K50</span></li>
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> Assignment download school <span class="price-tag">K50</span></li>
-            <li class="item" data-val="10" onclick="toggleItemNode(this)">> Assignment printing school <span class="price-tag">K10</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Online exam sitting school <span class="price-tag">K200</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Form 1 admission letter school <span class="price-tag">K100</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> NITA registration school <span class="price-tag">K200</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Trade Test registration school <span class="price-tag">K200</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Turnitin check school <span class="price-tag">K100</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Grammarly editing school <span class="price-tag">K100</span></li>
-          </ul>
-        </div>
-
-        <!-- NODE 03: Document Processing -->
-        <div class="cyber-card">
-          <div class="card-title font-cyber glow-cyan">DOCUMENT PROCESSING</div>
-          <ul class="two-col-list">
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> Typesetting <span class="price-tag">K50</span></li>
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> Document formatting <span class="price-tag">K50</span></li>
-            <li class="item" data-val="250" onclick="toggleItemNode(this)">> CV drafting <span class="price-tag">K250</span></li>
-            <li class="item" data-val="250" onclick="toggleItemNode(this)">> Resume drafting <span class="price-tag">K250</span></li>
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> Letter typing <span class="price-tag">K50</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Minutes typing <span class="price-tag">K100</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Excel sheet creation <span class="price-tag">K200</span></li>
-            <li class="item" data-val="10" onclick="toggleItemNode(this)">> Black & white print <span class="price-tag">K10</span></li>
-            <li class="item" data-val="20" onclick="toggleItemNode(this)">> Color printing <span class="price-tag">K20</span></li>
-            <li class="item" data-val="5" onclick="toggleItemNode(this)">> Photocopying <span class="price-tag">K5</span></li>
-            <li class="item" data-val="10" onclick="toggleItemNode(this)">> Scanning <span class="price-tag">K10</span></li>
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> Spiral binding <span class="price-tag">K50</span></li>
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> Tape binding <span class="price-tag">K50</span></li>
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> Lamination <span class="price-tag">K50</span></li>
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> Cloud storage backup <span class="price-tag">K50</span></li>
-            <li class="item" data-val="20" onclick="toggleItemNode(this)">> Emailing documents <span class="price-tag">K20</span></li>
-          </ul>
-        </div>
-        <!-- NODE 04: Creative Media -->
-        <div class="cyber-card">
-          <div class="card-title font-cyber glow-pink">CREATIVE MEDIA</div>
-          <ul class="two-col-list">
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> Business card design <span class="price-tag">K500</span></li>
-            <li class="item" data-val="10" onclick="toggleItemNode(this)">> Business card print <span class="price-tag">K10</span></li>
-            <li class="item" data-val="1500" onclick="toggleItemNode(this)">> Company profile design <span class="price-tag">K1.5k</span></li>
-            <li class="item" data-val="300" onclick="toggleItemNode(this)">> Logo construction <span class="price-tag">K300</span></li>
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> Flyer layout template <span class="price-tag">K500</span></li>
-            <li class="item" data-val="1000" onclick="toggleItemNode(this)">> Poster graphics blueprint <span class="price-tag">K1k</span></li>
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> Passport photo shoot <span class="price-tag">K50</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Photo editing enhance <span class="price-tag">K100</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Wedding card template <span class="price-tag">K200</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Funeral program design <span class="price-tag">K200</span></li>
-            <li class="item" data-val="150" onclick="toggleItemNode(this)">> Custom invitation cards <span class="price-tag">K150</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Digital banner graphics <span class="price-tag">K100</span></li>
-          </ul>
-        </div>
-
-        <!-- NODE 05: Tech Hardware -->
-        <div class="cyber-card">
-          <div class="card-title font-cyber glow-pink">TECH HARDWARE</div>
-          <ul class="two-col-list">
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> OS installation tech <span class="price-tag">K500</span></li>
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> Windows flashing windows tech <span class="price-tag">K500</span></li>
-            <li class="item" data-val="700" onclick="toggleItemNode(this)">> Linux flashing tech <span class="price-tag">K700</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Software activation activation tech <span class="price-tag">K200</span></li>
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> Antivirus setup tech <span class="price-tag">K500</span></li>
-            <li class="item" data-val="300" onclick="toggleItemNode(this)">> Office suite setup tech <span class="price-tag">K300</span></li>
-            <li class="item" data-val="300" onclick="toggleItemNode(this)">> Malware cleaning tech <span class="price-tag">K300</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Driver updates tech <span class="price-tag">K200</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Device diagnostics tech <span class="price-tag">K200</span></li>
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> Phone firmware tech <span class="price-tag">K500</span></li>
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> Carrier unlocking unlocking tech <span class="price-tag">K500</span></li>
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> Phone bypass tools tech <span class="price-tag">K500</span></li>
-            <li class="item" data-val="800" onclick="toggleItemNode(this)">> ROM flashing tech <span class="price-tag">K800</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> WhatsApp backup tech <span class="price-tag">K200</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Storage offloading tech <span class="price-tag">K200</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Android APK loading tech <span class="price-tag">K100</span></li>
-            <li class="item" data-val="150" onclick="toggleItemNode(this)">> Two-factor auth setup tech <span class="price-tag">K150</span></li>
-            <li class="item" data-val="300" onclick="toggleItemNode(this)">> Password recovery tech <span class="price-tag">K300</span></li>
-          </ul>
-        </div>
-        <!-- NODE 06: Logistics & Finance -->
-        <div class="cyber-card">
-          <div class="card-title font-cyber glow-cyan">LOGISTICS & FINANCE</div>
-          <ul class="two-col-list">
-            <li class="item" data-val="0" onclick="toggleItemNode(this)">> M-PESA deposits money <span class="price-tag">Tariff</span></li>
-            <li class="item" data-val="0" onclick="toggleItemNode(this)">> M-PESA withdrawals money <span class="price-tag">Tariff</span></li>
-            <li class="item" data-val="50" onclick="toggleItemNode(this)">> Utility bill payments money <span class="price-tag">K50</span></li>
-            <li class="item" data-val="1500" onclick="toggleItemNode(this)">> Corporate tender layout money <span class="price-tag">K1.5k</span></li>
-            <li class="item" data-val="10" onclick="toggleItemNode(this)">> Corporate tender print money <span class="price-tag">K10</span></li>
-            <li class="item" data-val="0" onclick="toggleItemNode(this)">> E-commerce pick-up <span class="price-tag">Free</span></li>
-            <li class="item" data-val="0" onclick="toggleItemNode(this)">> E-commerce drop-off <span class="price-tag">Free</span></li>
-            <li class="item" data-val="0" onclick="toggleItemNode(this)">> Bulk SMS marketing money <span class="price-tag">Quote</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Concert ticketing <span class="price-tag">K100</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Sports ticketing <span class="price-tag">K100</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Bus travel booking <span class="price-tag">K100</span></li>
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> Flight booking <span class="price-tag">K500</span></li>
-            <li class="item" data-val="1500" onclick="toggleItemNode(this)">> Visa application data <span class="price-tag">K1.5k</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Online flight check-in <span class="price-tag">K100</span></li>
-          </ul>
-        </div>
-
-        <!-- NODE 07: Digital Economy & AI -->
-        <div class="cyber-card">
-          <div class="card-title font-cyber glow-cyan">DIGITAL ECONOMY & AI</div>
-          <ul class="two-col-list">
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Office desk rental <span class="price-tag">K100/h</span></li>
-            <li class="item" data-val="1000" onclick="toggleItemNode(this)">> Upwork profile setup job <span class="price-tag">K1k</span></li>
-            <li class="item" data-val="1000" onclick="toggleItemNode(this)">> Fiverr profile setup job <span class="price-tag">K1k</span></li>
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> LinkedIn optimization job <span class="price-tag">K500</span></li>
-            <li class="item" data-val="500" onclick="toggleItemNode(this)">> Crypto wallets setup money <span class="price-tag">K500</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Crypto transaction logs money <span class="price-tag">K200</span></li>
-            <li class="item" data-val="0" onclick="toggleItemNode(this)">> P2P crypto trading money <span class="price-tag">Quote</span></li>
-            <li class="item" data-val="0" onclick="toggleItemNode(this)">> Forex trading access money <span class="price-tag">Quote</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> YouTube video uploads <span class="price-tag">K100</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> TikTok content uploads <span class="price-tag">K100</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> AI prompt structuring <span class="price-tag">K200</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> ChatGPT research help <span class="price-tag">K100</span></li>
-            <li class="item" data-val="100" onclick="toggleItemNode(this)">> Claude research help <span class="price-tag">K100</span></li>
-            <li class="item" data-val="200" onclick="toggleItemNode(this)">> Midjourney creation <span class="price-tag">K200</span></li>
-          </ul>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <script>
-    // --- APP-WIDE STATE MANAGEMENT MATRIX VARIABLES ---
-    let clickedItemsTotal = 0;
-    let globalAudioCtx = null;
-    let activeSessionTimerIntervalId = null;
-    let totalSecondsRemainingInSession = 0;
-    let currentActiveColorState = "cyberpunk";
-    let currentScaleStepIndex = 0;
-
-    // --- ACCESSIBILITY TEXT SCALING COMPILATION CONFIG MAP ---
-    const fontScaleStepsMap = [
-      { label: "[ TEXT: 1x ]", bodySize: "11px", cardTitle: "12px", rowGap: "0.5rem 1rem" },
-      { label: "[ TEXT: 1.3x ]", bodySize: "14px", cardTitle: "15px", rowGap: "0.7rem 1.2rem" },
-      { label: "[ TEXT: 1.5x ]", bodySize: "16px", cardTitle: "17px", rowGap: "0.9rem 1.4rem" }
-    ];
-    // --- SERVICE RUNTIME REQUIREMENT RULES DATABASE ---
-    const serviceProtocolDatabase = {
-      "ecitizen": { time: 20, items: ["National ID Card", "Active Phone (for OTP verification)"] },
-      "kra": { time: 15, items: ["KRA PIN Certificate", "Active Email Address", "Employment P9 Form (if filing)"] },
-      "ntsa": { time: 25, items: ["Original Logbook Copy", "National ID Scan", "TIMS/E-Citizen Credentials"] },
-      "good conduct": { time: 15, items: ["Original National ID Card", "Generated DCI Invoice Printout"] },
-      "company": { time: 60, items: ["Proposed 3 Business Names", "Director ID Scans & Passport Photos", "KRA PIN Scans"] },
-      "business name": { time: 30, items: ["Proposed Name", "Owner National ID Scan"] },
-      "etims": { time: 40, items: ["KRA iTax Password", "Business Registration Certificate (Certificate of Incorporation)"] },
-      "cv": { time: 45, items: ["Previous CV Draft / Academic Certificates", "List of Professional Referees"] },
-      "resume": { time: 45, items: ["Previous CV Draft / Academic Certificates", "List of Professional Referees"] },
-      "university": { time: 30, items: ["KCSE Result Slip Scan", "National ID / Birth Certificate Scan"] },
-      "kuccps": { time: 20, items: ["KCSE Index Number", "Portal Password Token"] },
-      "helb": { time: 35, items: ["Parent ID / Death Certificate Scan", "Guarantor ID Copies", "Smart Phone Number"] },
-      "passport photo": { time: 10, items: ["Physical Presence at Rongo Hub Studio"] }
-    };
-
-    // --- CODES EXPIRY LIFE CYCLES DATABASE MAP ---
-    const validationLifespanDatabase = {
-      "compliance": "Tax Compliance Certificates (TCC) run for exactly 12 months from generation.",
-      "good conduct": "DCI Police Clearance certificates are traditionally valid for 12 months.",
-      "tims renewal": "NTSA driver license allocations require renewal loops every 1 or 3 years.",
-      "business name": "Business Name Registrations hold reservation locks for 30 days before compilation.",
-      "company reg": "CR12 company structure documents state continuous registry until share swaps happen."
-    };
-
-    // --- ACCIDENTAL DATA REFRESH PREVENTION LAYER ---
-    window.addEventListener('beforeunload', (event) => {
-      const bw = parseInt(document.getElementById('bwPages').value) || 0;
-      const color = parseInt(document.getElementById('colorPages').value) || 0;
-      const portal = parseInt(document.getElementById('portalFee').value) || 0;
-      if (bw > 0 || color > 0 || portal > 0 || clickedItemsTotal > 0) {
-        event.preventDefault();
-        event.returnValue = 'You have a pending estimate invoice. Are you sure you want to leave?';
-      }
-    });
-
-    // --- INTERACTIVE WEBAUDIO SYS CLICK SYNTHESIZER ---
-    function playClick() {
-      try {
-        if (!globalAudioCtx) globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
-        const osc = globalAudioCtx.createOscillator(); const gainNode = globalAudioCtx.createGain();
-        osc.type = 'triangle'; osc.frequency.setValueAtTime(140, globalAudioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(700, globalAudioCtx.currentTime + 0.02);
-        gainNode.gain.setValueAtTime(0.03, globalAudioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.03);
-        osc.connect(gainNode); gainNode.connect(globalAudioCtx.destination);
-        osc.start(); osc.stop(globalAudioCtx.currentTime + 0.04);
-      } catch (e) { console.log('Audio deferred.'); }
-    }
-
-    // --- INTERACTIVE SELECTION ITEM CLICK NODE TRACKER ---
-    function toggleItemNode(element) {
-      const value = parseInt(element.getAttribute('data-val')) || 0;
-      if (element.classList.contains('active-node')) {
-        element.classList.remove('active-node');
-        clickedItemsTotal -= value;
-      } else {
-        element.classList.add('active-node');
-        clickedItemsTotal += value;
-      }
-      
-      const searchInput = document.getElementById('cyberSearch');
-      if (searchInput && searchInput.value !== '') {
-        searchInput.value = '';
-        filterCyberNodes();
-      }
-      calculateTotal();
-    }
-  <script>
-    // --- APP-WIDE STATE MANAGEMENT MATRIX VARIABLES ---
-    let clickedItemsTotal = 0;
-    let globalAudioCtx = null;
-    let activeSessionTimerIntervalId = null;
-    let totalSecondsRemainingInSession = 0;
-    let currentActiveColorState = "cyberpunk";
-    let currentScaleStepIndex = 0;
-
-    // --- ACCESSIBILITY TEXT SCALING COMPILATION CONFIG MAP ---
-    const fontScaleStepsMap = [
-      { label: "[ TEXT: 1x ]", bodySize: "11px", cardTitle: "12px", rowGap: "0.5rem 1rem" },
-      { label: "[ TEXT: 1.3x ]", bodySize: "14px", cardTitle: "15px", rowGap: "0.7rem 1.2rem" },
-      { label: "[ TEXT: 1.5x ]", bodySize: "16px", cardTitle: "17px", rowGap: "0.9rem 1.4rem" }
-    ];
-
-    // --- WHOLE PAGE RECURSIVE REAL-TIME TYPEWRITER ENGINE ---
-    function initializeWholePageTypewriterEngine() {
-      const globalTypingSpeedMs = 6; 
-      let elementsToAnimateArray = [];
-
-      function recursivelyLocateTextNodes(currentNode) {
-        const blacklistedTags = ['SCRIPT', 'STYLE', 'CANVAS', 'INPUT', 'SELECT', 'TEXTAREA'];
-        if (blacklistedTags.includes(currentNode.tagName)) return;
-
-        currentNode.childNodes.forEach(child => {
-          if (child.nodeType === Node.TEXT_NODE && child.nodeValue.trim().length > 0) {
-            elementsToAnimateArray.push({
-              parent: currentNode,
-              textNode: child,
-              originalRawString: child.nodeValue
-            });
-            child.nodeValue = '';
-          } else if (child.nodeType === Node.ELEMENT_NODE) {
-            recursivelyLocateTextNodes(child);
-          }
-        });
-      }
-
-      const mainViewportWrapper = document.querySelector('.dashboard-envelope');
-      if (!mainViewportWrapper) return;
-      
-      recursivelyLocateTextNodes(mainViewportWrapper);
-
-      elementsToAnimateArray.forEach(item => {
-        let currentCharacterPointer = 0;
-        const fullStringTarget = item.originalRawString;
-        
-        function streamNextCharacter() {
-          if (currentCharacterPointer <= fullStringTarget.length) {
-            item.textNode.nodeValue = fullStringTarget.substring(0, currentCharacterPointer);
-            currentCharacterPointer++;
-            setTimeout(streamNextCharacter, globalTypingSpeedMs);
-          }
+      currentNode.childNodes.forEach(child => {
+        if (child.nodeType === Node.TEXT_NODE && child.nodeValue.trim().length > 0) {
+          elementsToAnimateArray.push({
+            parent: currentNode,
+            textNode: child,
+            originalRawString: child.nodeValue
+          });
+          child.nodeValue = '';
+        } else if (child.nodeType === Node.ELEMENT_NODE) {
+          recursivelyLocateTextNodes(child);
         }
-        streamNextCharacter();
       });
     }
 
-    // --- SERVICE RUNTIME REQUIREMENT RULES DATABASE ---
-    const serviceProtocolDatabase = {
-      "ecitizen": { time: 20, items: ["National ID Card", "Active Phone (for OTP verification)"] },
-      "kra": { time: 15, items: ["KRA PIN Certificate", "Active Email Address", "Employment P9 Form (if filing)"] },
-      "ntsa": { time: 25, items: ["Original Logbook Copy", "National ID Scan", "TIMS/E-Citizen Credentials"] },
-      "good conduct": { time: 15, items: ["Original National ID Card", "Generated DCI Invoice Printout"] },
-      "company": { time: 60, items: ["Proposed 3 Business Names", "Director ID Scans & Passport Photos", "KRA PIN Scans"] },
-      "business name": { time: 30, items: ["Proposed Name", "Owner National ID Scan"] },
-      "etims": { time: 40, items: ["KRA iTax Password", "Business Registration Certificate (Certificate of Incorporation)"] },
-      "cv": { time: 45, items: ["Previous CV Draft / Academic Certificates", "List of Professional Referees"] },
-      "resume": { time: 45, items: ["Previous CV Draft / Academic Certificates", "List of Professional Referees"] },
-      "university": { time: 30, items: ["KCSE Result Slip Scan", "National ID / Birth Certificate Scan"] },
-      "kuccps": { time: 20, items: ["KCSE Index Number", "Portal Password Token"] },
-      "helb": { time: 35, items: ["Parent ID / Death Certificate Scan", "Guarantor ID Copies", "Smart Phone Number"] },
-      "passport photo": { time: 10, items: ["Physical Presence at Rongo Hub Studio"] }
-    };
-    // --- CODES EXPIRY LIFE CYCLES DATABASE MAP ---
-    const validationLifespanDatabase = {
-      "compliance": "Tax Compliance Certificates (TCC) run for exactly 12 months from generation.",
-      "good conduct": "DCI Police Clearance certificates are traditionally valid for 12 months.",
-      "tims renewal": "NTSA driver license allocations require renewal loops every 1 or 3 years.",
-      "business name": "Business Name Registrations hold reservation locks for 30 days before compilation.",
-      "company reg": "CR12 company structure documents state continuous registry until share swaps happen."
-    };
+    const mainViewportWrapper = document.querySelector('.dashboard-envelope');
+    if (!mainViewportWrapper) return;
+    
+    recursivelyLocateTextNodes(mainViewportWrapper);
 
-    // --- ACCIDENTAL DATA REFRESH PREVENTION LAYER ---
-    window.addEventListener('beforeunload', (event) => {
-      const bw = parseInt(document.getElementById('bwPages').value) || 0;
-      const color = parseInt(document.getElementById('colorPages').value) || 0;
-      const portal = parseInt(document.getElementById('portalFee').value) || 0;
-      if (bw > 0 || color > 0 || portal > 0 || clickedItemsTotal > 0) {
-        event.preventDefault();
-        event.returnValue = 'You have a pending estimate invoice. Are you sure you want to leave?';
-      }
-    });
-
-    // --- INTERACTIVE WEBAUDIO SYS CLICK SYNTHESIZER ---
-    function playClick() {
-      try {
-        if (!globalAudioCtx) globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (globalAudioCtx.state === 'suspended') globalAudioCtx.resume();
-        const osc = globalAudioCtx.createOscillator(); const gainNode = globalAudioCtx.createGain();
-        osc.type = 'triangle'; osc.frequency.setValueAtTime(140, globalAudioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(700, globalAudioCtx.currentTime + 0.02);
-        gainNode.gain.setValueAtTime(0.03, globalAudioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.03);
-        osc.connect(gainNode); gainNode.connect(globalAudioCtx.destination);
-        osc.start(); osc.stop(globalAudioCtx.currentTime + 0.04);
-      } catch (e) { console.log('Audio deferred.'); }
-    }
-
-    // --- INTERACTIVE SELECTION ITEM CLICK NODE TRACKER ---
-    function toggleItemNode(element) {
-      const value = parseInt(element.getAttribute('data-val')) || 0;
-      if (element.classList.contains('active-node')) {
-        element.classList.remove('active-node');
-        clickedItemsTotal -= value;
-      } else {
-        element.classList.add('active-node');
-        clickedItemsTotal += value;
-      }
+    elementsToAnimateArray.forEach(item => {
+      let currentCharacterPointer = 0;
+      const fullStringTarget = item.originalRawString;
       
-      const searchInput = document.getElementById('cyberSearch');
-      if (searchInput && searchInput.value !== '') {
-        searchInput.value = '';
-        filterCyberNodes();
-      }
-      calculateTotal();
-    }
-
-    // --- QUICK MACRO BUNDLE PRESET ENGINE ---
-    function injectBundlePresetNodes(targetServiceNames) {
-      if (typeof playClick === 'function') playClick();
-      const activeNodes = document.querySelectorAll('.active-node');
-      activeNodes.forEach(node => node.classList.remove('active-node'));
-      clickedItemsTotal = 0;
-
-      const allItems = document.getElementsByClassName('item');
-      for (let i = 0; i < allItems.length; i++) {
-        let textContent = allItems[i].innerText.toLowerCase();
-        const matchesPreset = targetServiceNames.some(targetName => textContent.includes(targetName.toLowerCase()));
-        
-        if (matchesPreset) {
-          allItems[i].classList.add('active-node');
-          const value = parseInt(allItems[i].getAttribute('data-val')) || 0;
-          clickedItemsTotal += value;
+      function streamNextCharacter() {
+        if (currentCharacterPointer <= fullStringTarget.length) {
+          item.textNode.nodeValue = fullStringTarget.substring(0, currentCharacterPointer);
+          currentCharacterPointer++;
+          setTimeout(streamNextCharacter, globalTypingSpeedMs);
         }
       }
-      calculateTotal();
+      streamNextCharacter();
+    });
+  }
+
+  // --- QUICK MACRO BUNDLE PRESET ENGINE ---
+  function injectBundlePresetNodes(targetServiceNames) {
+    if (typeof playClick === 'function') playClick();
+    const activeNodes = document.querySelectorAll('.active-node');
+    activeNodes.forEach(node => node.classList.remove('active-node'));
+    clickedItemsTotal = 0;
+
+    const allItems = document.getElementsByClassName('item');
+    for (let i = 0; i < allItems.length; i++) {
+      let textContent = allItems[i].innerText.toLowerCase();
+      const matchesPreset = targetServiceNames.some(targetName => textContent.includes(targetName.toLowerCase()));
+      
+      if (matchesPreset) {
+        allItems[i].classList.add('active-node');
+        const value = parseInt(allItems[i].getAttribute('data-val')) || 0;
+        clickedItemsTotal += value;
+      }
+    }
+    calculateTotal();
+  }
+
+  // --- GLOBAL ESTIMATE WIPE RESET MATRIX MODULE ---
+  function wipeEntireSystemEstimates() {
+    if (typeof playClick === 'function') playClick();
+    
+    if(document.getElementById('bwPages')) document.getElementById('bwPages').value = "0";
+    if(document.getElementById('colorPages')) document.getElementById('colorPages').value = "0";
+    if(document.getElementById('portalFee')) document.getElementById('portalFee').value = "0";
+    if(document.getElementById('clientMetadataName')) document.getElementById('clientMetadataName').value = "";
+    
+    const activeNodes = document.querySelectorAll('.active-node');
+    activeNodes.forEach(node => node.classList.remove('active-node'));
+    
+    clickedItemsTotal = 0;
+    calculateTotal();
+  }
+
+  // --- MATH MATRIX ENGINE & DYNAMIC TIER SCALER ---
+  function calculateTotal() {
+    const bwCount = parseInt(document.getElementById('bwPages')?.value) || 0;
+    const colorCount = parseInt(document.getElementById('colorPages')?.value) || 0;
+    const portal = parseInt(document.getElementById('portalFee')?.value) || 0;
+    const portalSelect = document.getElementById('portalFee');
+    
+    let bwPricePerPage = bwCount >= 50 ? 8 : 10;
+    let colorPricePerPage = colorCount >= 30 ? 15 : 20;
+    
+    const grandTotal = (bwCount * bwPricePerPage) + (colorCount * colorPricePerPage) + portal + clickedItemsTotal;
+    const grandTotalElem = document.getElementById('grandTotal');
+    if (grandTotalElem) grandTotalElem.innerText = grandTotal.toLocaleString();
+    
+    const activeCount = document.querySelectorAll('.active-node').length;
+    const nodeCounterElem = document.getElementById('nodeCounter');
+    if (nodeCounterElem) nodeCounterElem.innerText = activeCount > 0 ? `[ ${activeCount} NODES ]` : '';
+    
+    // --- LIVE RECEIPT COMPILATION ENGINE ---
+    let itemsList = [];
+    document.querySelectorAll('.active-node').forEach(node => {
+      let clone = node.cloneNode(true);
+      let tag = clone.querySelector('.price-tag');
+      if (tag) tag.remove();
+      let cleanText = clone.innerText.replace(/>/g, '').trim();
+      itemsList.push(cleanText);
+    });
+    
+    if (bwCount > 0) itemsList.push(`${bwCount}x B&W Printing Pages (@ KES ${bwPricePerPage}/pg)`);
+    if (colorCount > 0) itemsList.push(`${colorCount}x Color Printing Pages (@ KES ${colorPricePerPage}/pg)`);
+    if (portal > 0 && portalSelect && portalSelect.selectedIndex >= 0) {
+      itemsList.push(portalSelect.options[portalSelect.selectedIndex].text);
     }
 
-    // --- GLOBAL ESTIMATE WIPE RESET MATRIX MODULE ---
-    function wipeEntireSystemEstimates() {
-      if (typeof playClick === 'function') playClick();
-      
-      document.getElementById('bwPages').value = "0";
-      document.getElementById('colorPages').value = "0";
-      document.getElementById('portalFee').value = "0";
-      document.getElementById('clientMetadataName').value = "";
-      
-      const activeNodes = document.querySelectorAll('.active-node');
-      activeNodes.forEach(node => node.classList.remove('active-node'));
-      
-      clickedItemsTotal = 0;
-      calculateTotal();
+    let message = `Hello Kenncom Digital, I want to process a transaction request:\n`;
+    if (itemsList.length > 0) {
+      message += `\n📋 SELECTED NODES:\n- ` + itemsList.join('\n- ') + `\n`;
     }
-    // --- MATH MATRIX ENGINE & DYNAMIC TIER SCALER ---
-    function calculateTotal() {
-      const bwCount = parseInt(document.getElementById('bwPages').value) || 0;
-      const colorCount = parseInt(document.getElementById('colorPages').value) || 0;
-      const portal = parseInt(document.getElementById('portalFee').value) || 0;
-      const portalSelect = document.getElementById('portalFee');
-      
-      let bwPricePerPage = bwCount >= 50 ? 8 : 10;
-      let colorPricePerPage = colorCount >= 30 ? 15 : 20;
-      
-      const grandTotal = (bwCount * bwPricePerPage) + (colorCount * colorPricePerPage) + portal + clickedItemsTotal;
-      document.getElementById('grandTotal').innerText = grandTotal.toLocaleString();
-      
-      const activeCount = document.querySelectorAll('.active-node').length;
-      document.getElementById('nodeCounter').innerText = activeCount > 0 ? `[ ${activeCount} NODES ]` : '';
-      
-      // --- LIVE RECEIPT COMPILATION ENGINE ---
-      let itemsList = [];
-      document.querySelectorAll('.active-node').forEach(node => {
-        let rawText = node.innerText.replace(/>/g, '').trim();
-        let cleanText = rawText.replace(/\s*K[\d.]+[k]*\s*$/i, '').trim();
-        itemsList.push(cleanText);
-      });
-      
-      if (bwCount > 0) itemsList.push(`${bwCount}x B&W Printing Pages (@ KES ${bwPricePerPage}/pg)`);
-      if (colorCount > 0) itemsList.push(`${colorCount}x Color Printing Pages (@ KES ${colorPricePerPage}/pg)`);
-      if (portal > 0 && portalSelect) itemsList.push(portalSelect.options[portalSelect.selectedIndex].text);
-
-      let message = `Hello Kenncom Digital, I want to process a transaction request:\n`;
+    message += `\n💰 TOTAL ESTIMATE: KES ${grandTotal}.`;
+    
+    const typingTextLogger = document.getElementById('typingText');
+    if (typingTextLogger) {
       if (itemsList.length > 0) {
-        message += `\n📋 SELECTED NODES:\n- ` + itemsList.join('\n- ') + `\n`;
-      }
-      message += `\n💰 TOTAL ESTIMATE: KES ${grandTotal}.`;
-      
-      const typingTextLogger = document.getElementById('typingText');
-      if (typingTextLogger) {
-        if (itemsList.length > 0) {
-          typingTextLogger.innerHTML = `<strong>RECEIPT MATRIX COMPILED:</strong><br>` + itemsList.map(i => `> ${i}`).join('<br>') + `<br><span style="color:#fb923c; font-weight:bold; display:block; margin-top:5px;">TOTAL: KES ${grandTotal.toLocaleString()}</span>`;
-        } else {
-          typingTextLogger.innerHTML = `SYSTEM BOOT COMPLETE // INITIALIZING DIR NODES...<br>PWA LOCAL CACHE SYNCHRONIZED SUCCESFULLY.`;
-        }
-      }
-
-      // --- STABLE LINK INJECTION MATRIX ROUTING CONFIG ---
-      const baseWhatsAppUrl = "https://wa.me";
-      const linkElement = document.getElementById('secureCommsLink');
-      if (linkElement) {
-        linkElement.href = `${baseWhatsAppUrl}?text=${encodeURIComponent(message)}`;
-      }
-      
-      const dynamicQrImageElement = document.getElementById('dynamicLiveMonitorQRCode');
-      if (dynamicQrImageElement) {
-        dynamicQrImageElement.src = `https://qrserver.com{encodeURIComponent(baseWhatsAppUrl)}`;
-      }
-
-      if (typeof evaluateServiceProtocolsAndTime === 'function') evaluateServiceProtocolsAndTime();
-      if (typeof processDocumentLifecycles === 'function') processDocumentLifecycles();
-      if (typeof backupConfigurationStateToCache === 'function') backupConfigurationStateToCache();
-    }
-
-    // --- REQUIRES PROTOCOLS MATRIX EVALUATOR ---
-    function evaluateServiceProtocolsAndTime() {
-      const reqBox = document.getElementById('requirementsBox');
-      const durationText = document.getElementById('estimatedDurationText');
-      const listContainer = document.getElementById('checklistItemsList');
-      if (!reqBox || !durationText || !listContainer) return;
-      
-      let computedTotalMinutes = 0;
-      let consolidatedRequirementsSet = new Set();
-      
-      document.querySelectorAll('.active-node').forEach(node => {
-        let cleanNodeText = node.innerText.toLowerCase();
-        Object.keys(serviceProtocolDatabase).forEach(apiKey => {
-          if (cleanNodeText.includes(apiKey)) {
-            computedTotalMinutes += serviceProtocolDatabase[apiKey].time;
-            serviceProtocolDatabase[apiKey].items.forEach(item => consolidatedRequirementsSet.add(item));
-          }
-        });
-      });
-
-      const bw = parseInt(document.getElementById('bwPages').value) || 0;
-      const color = parseInt(document.getElementById('colorPages').value) || 0;
-      if (bw > 0 || color > 0) {
-        computedTotalMinutes += Math.ceil((bw + color) * 0.2);
-        consolidatedRequirementsSet.add("Soft Copy Documents / Flash Drive Payloads");
-      }
-      
-      if (computedTotalMinutes > 0) {
-        reqBox.style.display = 'block';
-        durationText.innerText = computedTotalMinutes >= 60 ? `${Math.floor(computedTotalMinutes / 60)}h ${computedTotalMinutes % 60}m EST` : `${computedTotalMinutes} MINS EST`;
-        listContainer.innerHTML = '';
-        consolidatedRequirementsSet.forEach(req => {
-          listContainer.innerHTML += `<li style="margin-bottom:4px; color:#fff;">• <span style="color:#a78bfa;">${req}</span></li>`;
-        });
-      } else { reqBox.style.display = 'none'; }
-    }
-
-    // --- LIFE CYCLE REFRESH ALERTS INTERACTION ---
-    function processDocumentLifecycles() {
-      const infoBox = document.getElementById('expiryAndTokenBox');
-      const listContainer = document.getElementById('expiryMetricsList');
-      if (!infoBox || !listContainer) return;
-
-      let lifecycleMatchesFound = 0; listContainer.innerHTML = '';
-      document.querySelectorAll('.active-node').forEach(node => {
-        let textCheck = node.innerText.toLowerCase();
-        Object.keys(validationLifespanDatabase).forEach(key => {
-          if (textCheck.includes(key)) {
-            lifecycleMatchesFound++;
-            listContainer.innerHTML += `<li style="margin-bottom:4px; color:#fff;">⚡ <span style="color:#e2e8f0;">${validationLifespanDatabase[key]}</span></li>`;
-          }
-        });
-      });
-      infoBox.style.display = lifecycleMatchesFound > 0 ? 'block' : 'none';
-    }
-    // --- SMART KEYWORDS SYNONYM DICTIONARY MAPPING LOOPS ---
-    const smartSearchSynonymDictionary = {
-      "tax": ["kra", "itax", "compliance", "pin", "etims", "invoice"],
-      "pin": ["kra", "itax", "registration", "compliance"],
-      "license": ["ntsa", "tims", "logbook", "transfer", "plate", "driving"],
-      "car": ["ntsa", "tims", "logbook", "transfer", "plate", "vehicle"],
-      "school": ["kuccps", "university", "assignment", "exam", "admission", "school", "helb"],
-      "job": ["cv", "resume", "typesetting", "letter", "good conduct", "dci", "upwork", "fiverr", "linkedin"],
-      "money": ["m-pesa", "withdrawal", "deposit", "finance", "bill", "tender", "crypto", "forex"]
-    };
-
-    function filterCyberNodes() {
-      const input = document.getElementById('cyberSearch').value.toLowerCase().trim();
-      const cards = document.getElementsByClassName('cyber-card');
-      const clearBtn = document.getElementById('clearSearchBtn');
-      if (clearBtn) clearBtn.style.display = input !== '' ? 'block' : 'none';
-
-      let targetedKeywordsList = [input];
-      Object.keys(smartSearchSynonymDictionary).forEach(primaryKey => {
-        if (input.includes(primaryKey) || primaryKey.includes(input)) {
-          targetedKeywordsList = targetedKeywordsList.concat(smartSearchSynonymDictionary[primaryKey]);
-        }
-      });
-
-      for (let i = 0; i < cards.length; i++) {
-        const items = cards[i].getElementsByClassName('item'); let cardMatches = false;
-        for (let j = 0; j < items.length; j++) {
-          let itemText = items[j].innerText.toLowerCase();
-          let itemIsAMatch = (input === '') || targetedKeywordsList.some(kw => itemText.includes(kw));
-          if (itemIsAMatch) { items[j].style.display = ""; if (input !== '') cardMatches = true; } 
-          else { items[j].style.display = "none"; }
-        }
-        cards[i].style.display = (cardMatches || input === '') ? "" : "none";
-      }
-    }
-
-    // --- LEISURE SESSION RUNTIME CLOCK COUNTDOWN ---
-    function initializeLeisureCountdownTimer() {
-      if (typeof playClick === 'function') playClick();
-      if (activeSessionTimerIntervalId) clearInterval(activeSessionTimerIntervalId);
-
-      const allocatedMinutes = parseInt(document.getElementById('sessionTimeDurationSelect').value) || 60;
-      totalSecondsRemainingInSession = allocatedMinutes * 60;
-      updateVisualSessionTimerDisplay();
-
-      activeSessionTimerIntervalId = setInterval(() => {
-        if (totalSecondsRemainingInSession > 0) {
-          totalSecondsRemainingInSession--; updateVisualSessionTimerDisplay();
-          if (totalSecondsRemainingInSession === 120) triggerTerminalAudioWarningAlert();
-        } else {
-          terminateLeisureCountdownTimer();
-          alert("TERMINAL NOTICE: Allocated leisure matrix block timeframe has elapsed.");
-        }
-      }, 1000);
-    }
-
-    function terminateLeisureCountdownTimer() {
-      if (typeof playClick === 'function') playClick();
-      if (activeSessionTimerIntervalId) { clearInterval(activeSessionTimerIntervalId); activeSessionTimerIntervalId = null; }
-      totalSecondsRemainingInSession = 0;
-      const displayElement = document.getElementById('sessionTimerDisplayClock');
-      if (displayElement) {
-        displayElement.innerText = "00:00:00";
-        displayElement.style.color = "#fb923c";
-      }
-    }
-
-    function updateVisualSessionTimerDisplay() {
-      const displayElement = document.getElementById('sessionTimerDisplayClock'); if (!displayElement) return;
-      const hrs = Math.floor(totalSecondsRemainingInSession / 3600);
-      const mins = Math.floor((totalSecondsRemainingInSession % 3600) / 60);
-      const secs = totalSecondsRemainingInSession % 60;
-      displayElement.innerText = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-      displayElement.style.color = totalSecondsRemainingInSession <= 120 ? "#ef4444" : (totalSecondsRemainingInSession <= 300 ? "#fb923c" : "#22d3ee");
-    }
-
-    function triggerTerminalAudioWarningAlert() {
-      try {
-        if (globalAudioCtx) {
-          const osc = globalAudioCtx.createOscillator(); const gainNode = globalAudioCtx.createGain();
-          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(880, globalAudioCtx.currentTime);
-          gainNode.gain.setValueAtTime(0.05, globalAudioCtx.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.3);
-          osc.connect(gainNode); gainNode.connect(globalAudioCtx.destination);
-          osc.start(); osc.stop(globalAudioCtx.currentTime + 0.3);
-        }
-      } catch (e) { console.log("Warning audio fault."); }
-    }
-
-    // --- FORM ENTRY PAYLOAD INPUT DATA SANITIZER ---
-    function sanitizeDataPayload(mode) {
-      if (typeof playClick === 'function') playClick();
-      const inputElement = document.getElementById('rawSanitizerInput'); if (!inputElement) return;
-      let currentText = inputElement.value;
-
-      if (mode === 'uppercase') { currentText = currentText.toUpperCase().replace(/\s+/g, ' ').trim(); } 
-      else if (mode === 'phone') {
-        let nums = currentText.replace(/\D/g, '');
-        if (nums.startsWith('254') && nums.length === 12) nums = '0' + nums.substring(3);
-        else if ((nums.startsWith('7') || nums.startsWith('1')) && nums.length === 9) nums = '0' + nums;
-        currentText = nums;
-      } 
-      else if (mode === 'clean-text') { currentText = currentText.replace(/[^\w\s-]/gi, '').replace(/\s+/g, ' ').trim(); }
-      inputElement.value = currentText;
-    }
-
-    function copySanitizedPayloadToClipboard() {
-      if (typeof playClick === 'function') playClick();
-      const text = document.getElementById('rawSanitizerInput').value;
-      if (!text.trim()) { alert("TERMINAL ERROR: Sanitizer field array is currently empty."); return; }
-      navigator.clipboard.writeText(text).then(() => alert("SUCCESS // Cleaned string copied to system clipboard matrix.")).catch(() => alert("FAULT: Clipboard hardware access drop."));
-    }
-    // --- SYSTEM DYNAMIC THEMES & ACCESSIBILITY TEXT FLUID FONTS CYCLER ---
-    function toggleSystemUIVisualTheme() {
-      if (typeof playClick === 'function') playClick();
-      const styleRoot = document.documentElement;
-      if (currentActiveColorState === "cyberpunk") {
-        styleRoot.style.setProperty('--cyber-glow-primary', '#34d399'); styleRoot.style.setProperty('--cyber-glow-secondary', '#10b981'); styleRoot.style.setProperty('--cyber-text-accent', '#34d399');
-        currentActiveColorState = "classic-matrix";
+        typingTextLogger.innerHTML = `<strong>RECEIPT MATRIX COMPILED:</strong><br>` + itemsList.map(i => `> ${i}`).join('<br>') + `<br><span style="color:#fb923c; font-weight:bold; display:block; margin-top:5px;">TOTAL: KES ${grandTotal.toLocaleString()}</span>`;
       } else {
-        styleRoot.style.setProperty('--cyber-glow-primary', '#f472b6'); styleRoot.style.setProperty('--cyber-glow-secondary', '#22d3ee'); styleRoot.style.setProperty('--cyber-text-accent', '#a78bfa');
-        currentActiveColorState = "cyberpunk";
+        typingTextLogger.innerHTML = `SYSTEM BOOT COMPLETE // INITIALIZING DIR NODES...<br>PWA LOCAL CACHE SYNCHRONIZED SUCCESFULLY.`;
       }
     }
 
-    function cycleAccessibilityTextScale() {
-      if (typeof playClick === 'function') playClick();
-      currentScaleStepIndex = (currentScaleStepIndex + 1) % fontScaleStepsMap.length;
-      const config = fontScaleStepsMap[currentScaleStepIndex];
-      document.getElementById('textScaleIndicatorNode').innerText = config.label;
-      const items = document.getElementsByClassName('item'); for (let i = 0; i < items.length; i++) items[i].style.fontSize = config.bodySize;
-      const titles = document.getElementsByClassName('card-title'); for (let i = 0; i < titles.length; i++) titles[i].style.fontSize = config.cardTitle;
-      const lists = document.getElementsByClassName('two-col-list'); for (let i = 0; i < lists.length; i++) lists[i].style.gap = config.rowGap;
+    // --- STABLE LINK INJECTION MATRIX ROUTING CONFIG ---
+    const baseWhatsAppUrl = "https://wa.me/254700000000"; // Replace with your WhatsApp phone number
+    const linkElement = document.getElementById('secureCommsLink');
+    if (linkElement) {
+      linkElement.href = `${baseWhatsAppUrl}?text=${encodeURIComponent(message)}`;
+    }
+    
+    const dynamicQrImageElement = document.getElementById('dynamicLiveMonitorQRCode');
+    if (dynamicQrImageElement && linkElement) {
+      dynamicQrImageElement.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(linkElement.href)}`;
     }
 
-    // --- LOCAL DEPLOYMENT CACHE WRITERS ---
-    function backupConfigurationStateToCache() {
-      let checkedNodeIndexes = []; const items = document.getElementsByClassName('item');
-      for (let i = 0; i < items.length; i++) if (items[i].classList.contains('active-node')) checkedNodeIndexes.push(i);
-      const payload = {
-        bw: document.getElementById('bwPages').value, color: document.getElementById('colorPages').value, portal: document.getElementById('portalFee').value, name: document.getElementById('clientMetadataName').value, nodes: checkedNodeIndexes
-      };
-      localStorage.setItem('kenncom_terminal_state', JSON.stringify(payload));
-    }
+    if (typeof evaluateServiceProtocolsAndTime === 'function') evaluateServiceProtocolsAndTime();
+    if (typeof processDocumentLifecycles === 'function') processDocumentLifecycles();
+    if (typeof backupConfigurationStateToCache === 'function') backupConfigurationStateToCache();
+  }
 
-    function recoverConfigurationStateFromCache() {
-      const data = localStorage.getItem('kenncom_terminal_state'); if (!data) return;
-      try {
-        const payload = JSON.parse(data);
-        if (payload.bw) document.getElementById('bwPages').value = payload.bw;
-        if (payload.color) document.getElementById('colorPages').value = payload.color;
-        if (payload.portal) document.getElementById('portalFee').value = payload.portal;
-        if (payload.name) document.getElementById('clientMetadataName').value = payload.name;
-        if (payload.nodes) {
-          const items = document.getElementsByClassName('item'); clickedItemsTotal = 0;
-          payload.nodes.forEach(idx => { if (items[idx]) { items[idx].classList.add('active-node'); clickedItemsTotal += parseInt(items[idx].getAttribute('data-val')) || 0; } });
+  // --- REQUIRES PROTOCOLS MATRIX EVALUATOR ---
+  function evaluateServiceProtocolsAndTime() {
+    const reqBox = document.getElementById('requirementsBox');
+    const durationText = document.getElementById('estimatedDurationText');
+    const listContainer = document.getElementById('checklistItemsList');
+    if (!reqBox || !durationText || !listContainer) return;
+    
+    let computedTotalMinutes = 0;
+    let consolidatedRequirementsSet = new Set();
+    
+    document.querySelectorAll('.active-node').forEach(node => {
+      let cleanNodeText = node.innerText.toLowerCase();
+      Object.keys(serviceProtocolDatabase).forEach(apiKey => {
+        if (cleanNodeText.includes(apiKey)) {
+          computedTotalMinutes += serviceProtocolDatabase[apiKey].time;
+          serviceProtocolDatabase[apiKey].items.forEach(item => consolidatedRequirementsSet.add(item));
         }
-        calculateTotal();
-      } catch (e) { console.log("Cache read skipped."); }
-    }
-
-    function executeClipboardTokenSnapshotCopy() {
-      if (typeof playClick === 'function') playClick();
-      const sum = document.getElementById('grandTotal').innerText; let shortItems = [];
-      document.querySelectorAll('.active-node').forEach(node => { 
-        let raw = node.innerText.replace(/>/g, '').trim();
-        let splitArr = raw.split('K');
-        if (splitArr.length > 0) shortItems.push(splitArr[0].trim());
       });
-      if (shortItems.length === 0 && parseInt(document.getElementById('bwPages').value) === 0 && parseInt(document.getElementById('colorPages').value) === 0) { 
-        alert("TERMINAL ERROR: Select a directory node or enter pages first."); return; 
-      }
-      let token = `KENNCOM REF // Items: ${shortItems.slice(0, 3).join(', ')}${shortItems.length > 3 ? '...' : ''} | Total Valuation: KES ${sum}.`;
-      navigator.clipboard.writeText(token).then(() => alert("SUCCESS // Reference code token profile copied.")).catch(() => alert("HARDWARE FAULT."));
-    }
-
-    // --- TERMINAL LATENCY DIAGNOSTIC MODULE ---
-    function triggerNetworkDiagnosticPing() {
-      if (typeof playClick === 'function') playClick();
-      const pingText = document.getElementById('pingStatusText'); const progressBar = document.getElementById('pingProgressBar');
-      if (!pingText || !progressBar) return;
-      pingText.innerText = "PINGING MATRIX NODE..."; pingText.style.color = "#fb923c"; progressBar.style.width = "20%";
-      setTimeout(() => {
-        progressBar.style.width = "60%";
-        setTimeout(() => { progressBar.style.width = "100%"; pingText.innerText = "CONNECTED // 12ms LATENCY"; pingText.style.color = "#34d399"; }, 400);
-      }, 300);
-    }
-
-    function forceResetSearch() { const searchInput = document.getElementById('cyberSearch'); if (searchInput) { searchInput.value = ''; filterCyberNodes(); } }
-
-    // --- MATRIX DIGITAL RAIN EFFECTS ACCELERATOR ENGINE ---
-    function initMatrixBackgroundEngine() {
-      const canvas = document.getElementById('matrixCanvas'); if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-      resizeCanvas(); window.addEventListener('resize', resizeCanvas);
-      const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZMODULESYSTEMCORE"; const fontSize = 14; const columns = canvas.width / fontSize; const rainDrops = Array(Math.floor(columns)).fill(1);
-      function drawMatrixFrame() {
-        ctx.fillStyle = 'rgba(8, 8, 10, 0.05)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = currentActiveColorState === "cyberpunk" ? '#f472b6' : '#34d399'; ctx.font = fontSize + 'px monospace';
-        for (let i = 0; i < rainDrops.length; i++) {
-          const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length)); ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
-          if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) rainDrops[i] = 0;
-          rainDrops[i]++;
-        }
-      }
-      setInterval(drawMatrixFrame, 33);
-    }
-
-    // --- LIFE CYCLE INITIALIZER APP LINK SYSTEM CORES ---
-    window.addEventListener('DOMContentLoaded', () => {
-      initMatrixBackgroundEngine();
-      recoverConfigurationStateFromCache();
-      calculateTotal();
-      
-      // ⚡ LAUNCH MASTER DEEP-TREE AUTO-TYPER ENGINE
-      initializeWholePageTypewriterEngine();
-      
-      const statusBadge = document.getElementById('statusBadge'); if (statusBadge) statusBadge.innerText = "SYSTEM ACTIVE // RUNTIME SECURE";
-      window.addEventListener('offline', () => { const alertBanner = document.getElementById('offlineHardwareBannerAlert'); if (alertBanner) alertBanner.style.display = 'block'; });
-      window.addEventListener('online', () => { const alertBanner = document.getElementById('offlineHardwareBannerAlert'); if (alertBanner) alertBanner.style.display = 'none'; });
-      if (!navigator.onLine) { const alertBanner = document.getElementById('offlineHardwareBannerAlert'); if (alertBanner) alertBanner.style.display = 'block'; }
     });
-  </script>
-</body>
-</html>
+
+    const bw = parseInt(document.getElementById('bwPages')?.value) || 0;
+    const color = parseInt(document.getElementById('colorPages')?.value) || 0;
+    if (bw > 0 || color > 0) {
+      computedTotalMinutes += Math.ceil((bw + color) * 0.2);
+      consolidatedRequirementsSet.add("Soft Copy Documents / Flash Drive Payloads");
+    }
+    
+    if (computedTotalMinutes > 0) {
+      reqBox.style.display = 'block';
+      durationText.innerText = computedTotalMinutes >= 60 ? `${Math.floor(computedTotalMinutes / 60)}h ${computedTotalMinutes % 60}m EST` : `${computedTotalMinutes} MINS EST`;
+      listContainer.innerHTML = '';
+      consolidatedRequirementsSet.forEach(req => {
+        listContainer.innerHTML += `<li style="margin-bottom:4px; color:#fff;">• <span style="color:#a78bfa;">${req}</span></li>`;
+      });
+    } else { reqBox.style.display = 'none'; }
+  }
+
+  // --- LIFE CYCLE REFRESH ALERTS INTERACTION ---
+  function processDocumentLifecycles() {
+    const infoBox = document.getElementById('expiryAndTokenBox');
+    const listContainer = document.getElementById('expiryMetricsList');
+    if (!infoBox || !listContainer) return;
+
+    let lifecycleMatchesFound = 0; listContainer.innerHTML = '';
+    document.querySelectorAll('.active-node').forEach(node => {
+      let textCheck = node.innerText.toLowerCase();
+      Object.keys(validationLifespanDatabase).forEach(key => {
+        if (textCheck.includes(key)) {
+          lifecycleMatchesFound++;
+          listContainer.innerHTML += `<li style="margin-bottom:4px; color:#fff;">⚡ <span style="color:#e2e8f0;">${validationLifespanDatabase[key]}</span></li>`;
+        }
+      });
+    });
+    infoBox.style.display = lifecycleMatchesFound > 0 ? 'block' : 'none';
+  }
+
+  // --- SMART KEYWORDS SYNONYM DICTIONARY MAPPING LOOPS ---
+  const smartSearchSynonymDictionary = {
+    "tax": ["kra", "itax", "compliance", "pin", "etims", "invoice"],
+    "pin": ["kra", "itax", "registration", "compliance"],
+    "license": ["ntsa", "tims", "logbook", "transfer", "plate", "driving"],
+    "car": ["ntsa", "tims", "logbook", "transfer", "plate", "vehicle"],
+    "school": ["kuccps", "university", "assignment", "exam", "admission", "school", "helb"],
+    "job": ["cv", "resume", "typesetting", "letter", "good conduct", "dci", "upwork", "fiverr", "linkedin"],
+    "money": ["m-pesa", "withdrawal", "deposit", "finance", "bill", "tender", "crypto", "forex"]
+  };
+
+  function filterCyberNodes() {
+    const searchElem = document.getElementById('cyberSearch');
+    if (!searchElem) return;
+    const input = searchElem.value.toLowerCase().trim();
+    const cards = document.getElementsByClassName('cyber-card');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    if (clearBtn) clearBtn.style.display = input !== '' ? 'block' : 'none';
+
+    let targetedKeywordsList = [input];
+    Object.keys(smartSearchSynonymDictionary).forEach(primaryKey => {
+      if (input.includes(primaryKey) || primaryKey.includes(input)) {
+        targetedKeywordsList = targetedKeywordsList.concat(smartSearchSynonymDictionary[primaryKey]);
+      }
+    });
+
+    for (let i = 0; i < cards.length; i++) {
+      const items = cards[i].getElementsByClassName('item'); 
+      let cardMatches = false;
+      for (let j = 0; j < items.length; j++) {
+        let itemText = items[j].innerText.toLowerCase();
+        let itemIsAMatch = (input === '') || targetedKeywordsList.some(kw => itemText.includes(kw));
+        if (itemIsAMatch) { items[j].style.display = ""; if (input !== '') cardMatches = true; } 
+        else { items[j].style.display = "none"; }
+      }
+      cards[i].style.display = (cardMatches || input === '') ? "" : "none";
+    }
+  }
+
+  // --- LEISURE SESSION RUNTIME CLOCK COUNTDOWN ---
+  function initializeLeisureCountdownTimer() {
+    if (typeof playClick === 'function') playClick();
+    if (activeSessionTimerIntervalId) clearInterval(activeSessionTimerIntervalId);
+
+    const allocatedMinutes = parseInt(document.getElementById('sessionTimeDurationSelect')?.value) || 60;
+    totalSecondsRemainingInSession = allocatedMinutes * 60;
+    updateVisualSessionTimerDisplay();
+
+    activeSessionTimerIntervalId = setInterval(() => {
+      if (totalSecondsRemainingInSession > 0) {
+        totalSecondsRemainingInSession--; 
+        updateVisualSessionTimerDisplay();
+        if (totalSecondsRemainingInSession === 120) triggerTerminalAudioWarningAlert();
+      } else {
+        terminateLeisureCountdownTimer();
+        alert("TERMINAL NOTICE: Allocated leisure matrix block timeframe has elapsed.");
+      }
+    }, 1000);
+  }
+
+  function terminateLeisureCountdownTimer() {
+    if (typeof playClick === 'function') playClick();
+    if (activeSessionTimerIntervalId) { clearInterval(activeSessionTimerIntervalId); activeSessionTimerIntervalId = null; }
+    totalSecondsRemainingInSession = 0;
+    const displayElement = document.getElementById('sessionTimerDisplayClock');
+    if (displayElement) {
+      displayElement.innerText = "00:00:00";
+      displayElement.style.color = "#fb923c";
+    }
+  }
+
+  function updateVisualSessionTimerDisplay() {
+    const displayElement = document.getElementById('sessionTimerDisplayClock'); if (!displayElement) return;
+    const hrs = Math.floor(totalSecondsRemainingInSession / 3600);
+    const mins = Math.floor((totalSecondsRemainingInSession % 3600) / 60);
+    const secs = totalSecondsRemainingInSession % 60;
+    displayElement.innerText = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    displayElement.style.color = totalSecondsRemainingInSession <= 120 ? "#ef4444" : (totalSecondsRemainingInSession <= 300 ? "#fb923c" : "#22d3ee");
+  }
+
+  function triggerTerminalAudioWarningAlert() {
+    try {
+      if (globalAudioCtx) {
+        const osc = globalAudioCtx.createOscillator(); 
+        const gainNode = globalAudioCtx.createGain();
+        osc.type = 'sawtooth'; 
+        osc.frequency.setValueAtTime(880, globalAudioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.05, globalAudioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, globalAudioCtx.currentTime + 0.3);
+        osc.connect(gainNode); 
+        gainNode.connect(globalAudioCtx.destination);
+        osc.start(); 
+        osc.stop(globalAudioCtx.currentTime + 0.3);
+      }
+    } catch (e) { console.log("Warning audio fault."); }
+  }
+
+  // --- FORM ENTRY PAYLOAD INPUT DATA SANITIZER ---
+  function sanitizeDataPayload(mode) {
+    if (typeof playClick === 'function') playClick();
+    const inputElement = document.getElementById('rawSanitizerInput'); if (!inputElement) return;
+    let currentText = inputElement.value;
+
+    if (mode === 'uppercase') { currentText = currentText.toUpperCase().replace(/\s+/g, ' ').trim(); } 
+    else if (mode === 'phone') {
+      let nums = currentText.replace(/\D/g, '');
+      if (nums.startsWith('254') && nums.length === 12) nums = '0' + nums.substring(3);
+      else if ((nums.startsWith('7') || nums.startsWith('1')) && nums.length === 9) nums = '0' + nums;
+      currentText = nums;
+    } 
+    else if (mode === 'clean-text') { currentText = currentText.replace(/[^\w\s-]/gi, '').replace(/\s+/g, ' ').trim(); }
+    inputElement.value = currentText;
+  }
+
+  function copySanitizedPayloadToClipboard() {
+    if (typeof playClick === 'function') playClick();
+    const input = document.getElementById('rawSanitizerInput');
+    if (!input || !input.value.trim()) { alert("TERMINAL ERROR: Sanitizer field array is currently empty."); return; }
+    navigator.clipboard.writeText(input.value).then(() => alert("SUCCESS // Cleaned string copied to system clipboard matrix.")).catch(() => alert("FAULT: Clipboard hardware access drop."));
+  }
+
+  // --- SYSTEM DYNAMIC THEMES & ACCESSIBILITY TEXT FLUID FONTS CYCLER ---
+  function toggleSystemUIVisualTheme() {
+    if (typeof playClick === 'function') playClick();
+    const styleRoot = document.documentElement;
+    if (currentActiveColorState === "cyberpunk") {
+      styleRoot.style.setProperty('--cyber-glow-primary', '#34d399'); 
+      styleRoot.style.setProperty('--cyber-glow-secondary', '#10b981'); 
+      styleRoot.style.setProperty('--cyber-text-accent', '#34d399');
+      currentActiveColorState = "classic-matrix";
+    } else {
+      styleRoot.style.setProperty('--cyber-glow-primary', '#f472b6'); 
+      styleRoot.style.setProperty('--cyber-glow-secondary', '#22d3ee'); 
+      styleRoot.style.setProperty('--cyber-text-accent', '#a78bfa');
+      currentActiveColorState = "cyberpunk";
+    }
+  }
+
+  function cycleAccessibilityTextScale() {
+    if (typeof playClick === 'function') playClick();
+    currentScaleStepIndex = (currentScaleStepIndex + 1) % fontScaleStepsMap.length;
+    const config = fontScaleStepsMap[currentScaleStepIndex];
+    const scaleIndicator = document.getElementById('textScaleIndicatorNode');
+    if (scaleIndicator) scaleIndicator.innerText = config.label;
+    
+    const items = document.getElementsByClassName('item'); 
+    for (let i = 0; i < items.length; i++) items[i].style.fontSize = config.bodySize;
+    
+    const titles = document.getElementsByClassName('card-title'); 
+    for (let i = 0; i < titles.length; i++) titles[i].style.fontSize = config.cardTitle;
+    
+    const lists = document.getElementsByClassName('two-col-list'); 
+    for (let i = 0; i < lists.length; i++) lists[i].style.gap = config.rowGap;
+  }
+
+  // --- LOCAL DEPLOYMENT CACHE WRITERS ---
+  function backupConfigurationStateToCache() {
+    let checkedNodeIndexes = []; 
+    const items = document.getElementsByClassName('item');
+    for (let i = 0; i < items.length; i++) if (items[i].classList.contains('active-node')) checkedNodeIndexes.push(i);
+    const payload = {
+      bw: document.getElementById('bwPages')?.value || "0", 
+      color: document.getElementById('colorPages')?.value || "0", 
+      portal: document.getElementById('portalFee')?.value || "0", 
+      name: document.getElementById('clientMetadataName')?.value || "", 
+      nodes: checkedNodeIndexes
+    };
+    localStorage.setItem('kenncom_terminal_state', JSON.stringify(payload));
+  }
+
+  function recoverConfigurationStateFromCache() {
+    const data = localStorage.getItem('kenncom_terminal_state'); if (!data) return;
+    try {
+      const payload = JSON.parse(data);
+      if (payload.bw && document.getElementById('bwPages')) document.getElementById('bwPages').value = payload.bw;
+      if (payload.color && document.getElementById('colorPages')) document.getElementById('colorPages').value = payload.color;
+      if (payload.portal && document.getElementById('portalFee')) document.getElementById('portalFee').value = payload.portal;
+      if (payload.name && document.getElementById('clientMetadataName')) document.getElementById('clientMetadataName').value = payload.name;
+      if (payload.nodes) {
+        const items = document.getElementsByClassName('item'); clickedItemsTotal = 0;
+        payload.nodes.forEach(idx => { 
+          if (items[idx]) { 
+            items[idx].classList.add('active-node'); 
+            clickedItemsTotal += parseInt(items[idx].getAttribute('data-val')) || 0; 
+          } 
+        });
+      }
+      calculateTotal();
+    } catch (e) { console.log("Cache read skipped."); }
+  }
+
+  function executeClipboardTokenSnapshotCopy() {
+    if (typeof playClick === 'function') playClick();
+    const sumElem = document.getElementById('grandTotal');
+    const sum = sumElem ? sumElem.innerText : "0"; 
+    let shortItems = [];
+    
+    document.querySelectorAll('.active-node').forEach(node => { 
+      let clone = node.cloneNode(true);
+      let tag = clone.querySelector('.price-tag');
+      if (tag) tag.remove();
+      shortItems.push(clone.innerText.replace(/>/g, '').trim());
+    });
+    
+    const bwVal = parseInt(document.getElementById('bwPages')?.value) || 0;
+    const colorVal = parseInt(document.getElementById('colorPages')?.value) || 0;
+
+    if (shortItems.length === 0 && bwVal === 0 && colorVal === 0) { 
+      alert("TERMINAL ERROR: Select a directory node or enter pages first."); 
+      return; 
+    }
+    let token = `KENNCOM REF // Items: ${shortItems.slice(0, 3).join(', ')}${shortItems.length > 3 ? '...' : ''} | Total Valuation: KES ${sum}.`;
+    navigator.clipboard.writeText(token).then(() => alert("SUCCESS // Reference code token profile copied.")).catch(() => alert("HARDWARE FAULT."));
+  }
+
+  // --- TERMINAL LATENCY DIAGNOSTIC MODULE ---
+  function triggerNetworkDiagnosticPing() {
+    if (typeof playClick === 'function') playClick();
+    const pingText = document.getElementById('pingStatusText'); 
+    const progressBar = document.getElementById('pingProgressBar');
+    if (!pingText || !progressBar) return;
+    
+    pingText.innerText = "PINGING MATRIX NODE..."; 
+    pingText.style.color = "#fb923c"; 
+    progressBar.style.width = "20%";
+    
+    setTimeout(() => {
+      progressBar.style.width = "60%";
+      setTimeout(() => { 
+        progressBar.style.width = "100%"; 
+        pingText.innerText = "CONNECTED // 12ms LATENCY"; 
+        pingText.style.color = "#34d399"; 
+      }, 400);
+    }, 300);
+  }
+
+  function forceResetSearch() { 
+    const searchInput = document.getElementById('cyberSearch'); 
+    if (searchInput) { searchInput.value = ''; filterCyberNodes(); } 
+  }
+
+  // --- MATRIX DIGITAL RAIN EFFECTS ACCELERATOR ENGINE ---
+  function initMatrixBackgroundEngine() {
+    const canvas = document.getElementById('matrixCanvas'); if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() { 
+      canvas.width = window.innerWidth; 
+      canvas.height = window.innerHeight; 
+    }
+    resizeCanvas(); 
+    window.addEventListener('resize', resizeCanvas);
+    
+    const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZMODULESYSTEMCORE"; 
+    const fontSize = 14; 
+    const columns = Math.floor((canvas.width || window.innerWidth) / fontSize); 
+    const rainDrops = Array(columns).fill(1);
+    
+    function drawMatrixFrame() {
+      ctx.fillStyle = 'rgba(8, 8, 10, 0.05)'; 
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = currentActiveColorState === "cyberpunk" ? '#f472b6' : '#34d399'; 
+      ctx.font = fontSize + 'px monospace';
+      
+      for (let i = 0; i < rainDrops.length; i++) {
+        const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length)); 
+        ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+        if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) rainDrops[i] = 0;
+        rainDrops[i]++;
+      }
+    }
+    setInterval(drawMatrixFrame, 33);
+  }
+
+  // --- LIFE CYCLE INITIALIZER APP LINK SYSTEM CORES ---
+  window.addEventListener('DOMContentLoaded', () => {
+    initMatrixBackgroundEngine();
+    recoverConfigurationStateFromCache();
+    calculateTotal();
+    
+    // LAUNCH MASTER AUTO-TYPER ENGINE
+    initializeWholePageTypewriterEngine();
+    
+    const statusBadge = document.getElementById('statusBadge'); 
+    if (statusBadge) statusBadge.innerText = "SYSTEM ACTIVE // RUNTIME SECURE";
+    
+    window.addEventListener('offline', () => { 
+      const alertBanner = document.getElementById('offlineHardwareBannerAlert'); 
+      if (alertBanner) alertBanner.style.display = 'block'; 
+    });
+    
+    window.addEventListener('online', () => { 
+      const alertBanner = document.getElementById('offlineHardwareBannerAlert'); 
+      if (alertBanner) alertBanner.style.display = 'none'; 
+    });
+    
+    if (!navigator.onLine) { 
+      const alertBanner = document.getElementById('offlineHardwareBannerAlert'); 
+      if (alertBanner) alertBanner.style.display = 'block'; 
+    }
+  });
+</script>
