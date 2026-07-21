@@ -49,9 +49,11 @@
 
     /* Services Grid */
     .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px; }
-    .service-item { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 15px; text-align: center; }
-    .service-item h4 { margin: 0 0 8px 0; color: #38bdf8; }
-    .service-item p { margin: 0; font-size: 0.85rem; color: #94a3b8; }
+    .service-item { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 15px; display: flex; flex-direction: column; justify-content: space-between; text-align: left; }
+    .service-item h4 { margin: 0 0 8px 0; color: #38bdf8; font-size: 0.95rem; }
+    .service-item p { margin: 0 0 12px 0; font-size: 0.82rem; color: #94a3b8; flex-grow: 1; }
+    .service-inquire { display: inline-block; background: #334155; color: #38bdf8; text-align: center; padding: 6px 10px; border-radius: 4px; font-size: 0.75rem; text-decoration: none; font-weight: bold; transition: background 0.2s; }
+    .service-inquire:hover { background: #00d2ff; color: #0f172a; }
 
     /* Admission Portals Grid */
     .portal-links-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 15px; }
@@ -100,6 +102,9 @@
       <label for="regName">Full Name:</label>
       <input type="text" id="regName" placeholder="Enter full name">
 
+      <label for="regEmail">Email Address (For Verification Code):</label>
+      <input type="email" id="regEmail" placeholder="e.g. user@gmail.com">
+
       <label for="regPhone">Phone Number:</label>
       <input type="tel" id="regPhone" placeholder="e.g. +254712345678">
 
@@ -117,18 +122,38 @@
     <!-- LOGIN FORM -->
     <div id="loginFormContainer" class="hidden">
       <h2>Customer Login</h2>
-      <p style="font-size: 0.9rem; color: #94a3b8;">Enter your phone number and secure password to log in.</p>
+      <p style="font-size: 0.9rem; color: #94a3b8;">Enter your phone number and password, or request an email sign-in code.</p>
 
-      <label for="loginPhone">Phone Number:</label>
-      <input type="tel" id="loginPhone" placeholder="e.g. +254712345678">
+      <label for="loginPhone">Phone Number or Email:</label>
+      <input type="text" id="loginPhone" placeholder="Enter phone or email">
 
       <label for="loginPassword">Password:</label>
       <input type="password" id="loginPassword" placeholder="Enter your password">
 
       <button class="btn-primary" onclick="handleLogin()">Login to Portal</button>
 
+      <div style="margin-top: 15px; text-align: center; border-top: 1px solid #334155; padding-top: 15px;">
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px;">Or sign in securely using a 6-digit email code:</p>
+        <button type="button" style="background: #334155; color: #38bdf8; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="requestEmailCode()">Send Code via Email</button>
+      </div>
+
       <div class="auth-switch">
         Don't have an account? <span onclick="switchAuthView('signup')">Sign up here</span>
+      </div>
+    </div>
+
+    <!-- EMAIL CODE VERIFICATION FORM -->
+    <div id="codeVerifyContainer" class="hidden">
+      <h2>Verify Email Code</h2>
+      <p style="font-size: 0.9rem; color: #94a3b8;">We have generated a verification code for your email. (Simulated Code shown below for test convenience).</p>
+      
+      <label for="enteredCode">Enter 6-Digit Code:</label>
+      <input type="text" id="enteredCode" placeholder="123456" maxlength="6">
+
+      <button class="btn-primary" onclick="verifyEmailCode()">Verify & Login</button>
+      
+      <div class="auth-switch">
+        <span onclick="switchAuthView('login')">Back to normal login</span>
       </div>
     </div>
 
@@ -148,25 +173,74 @@
       </div>
     </div>
 
-    <!-- 2. CYBER SERVICES & ADMISSION PORTALS -->
+    <!-- 2. EXPANDED CYBER SERVICES & ADMISSION PORTALS -->
     <div class="card">
       <h2>Cyber Services & Portals</h2>
+      <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px;">Explore our comprehensive digital and physical solutions. Contact us via WhatsApp to inquire about rates and pricing.</p>
+      
       <div class="services-grid">
         <div class="service-item">
-          <h4>Printing & Scanning</h4>
-          <p>Color & B/W printing, document scanning, and PDF compilation.</p>
+          <div>
+            <h4>Printing & Scanning</h4>
+            <p>High-resolution color/BW document printing, scanning, and fast multi-page PDF compilation.</p>
+          </div>
+          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Printing%20%26%20Scanning%20prices." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
         </div>
+
         <div class="service-item">
-          <h4>Format Conversion</h4>
-          <p>Convert Word, Excel, Text, and Images to PDF layout-accurate instantly.</p>
+          <div>
+            <h4>Document Conversions</h4>
+            <p>Layout-accurate conversions between Word, Excel, Text, Images, and professional PDFs.</p>
+          </div>
+          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Document%20Conversion%20prices." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
         </div>
+
         <div class="service-item">
-          <h4>Direct Drive Upload</h4>
-          <p>Upload files straight to our cyber store folder for direct processing.</p>
+          <div>
+            <h4>KRA Services & iTax</h4>
+            <p>PIN registration, returns filing, tax compliance certificate processing, and amendments.</p>
+          </div>
+          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20KRA%20services%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
         </div>
+
         <div class="service-item">
-          <h4>Passport Photo Resizer</h4>
-          <p>Format photos to standard passport dimensions with instant download.</p>
+          <div>
+            <h4>HEF & KUCCPS Placement</h4>
+            <p>Higher Education Financing loan applications, scholarship filing, and university choice revisions.</p>
+          </div>
+          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20HEF%20and%20KUCCPS%20service%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+        </div>
+
+        <div class="service-item">
+          <div>
+            <h4>eCitizen & Govt Applications</h4>
+            <p>Passport applications, Police Clearance certificates (Good Conduct), and civil registration forms.</p>
+          </div>
+          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20eCitizen%20services%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+        </div>
+
+        <div class="service-item">
+          <div>
+            <h4>Passport Photo Resizer</h4>
+            <p>Studio-grade background adjustments and dimension cropping for official document submissions.</p>
+          </div>
+          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Passport%20Photo%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+        </div>
+
+        <div class="service-item">
+          <div>
+            <h4>Graphic Design & Branding</h4>
+            <p>Professional logo design, business cards, posters, banners, and digital marketing flyers.</p>
+          </div>
+          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20Graphic%20Design%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
+        </div>
+
+        <div class="service-item">
+          <div>
+            <h4>CV & Resume Revamp</h4>
+            <p>Professional formatting, modern layout optimization, and cover letter writing assistance.</p>
+          </div>
+          <a href="https://wa.me/254119587279?text=Hello%2C%20I%20would%20like%20to%20inquire%20about%20CV%20writing%20pricing." target="_blank" class="service-inquire">Inquire Price via WhatsApp</a>
         </div>
       </div>
 
@@ -298,44 +372,50 @@
   // Global cache for processed output blob
   let processedBlob = null;
   let processedFileName = "";
+  let generatedEmailCode = "";
 
-  // Initialize Page State
+  // Initialize Page State & Check active session
   window.onload = function() {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
     
+    const isLogged = localStorage.getItem('kenncom_isLoggedIn');
     const savedName = localStorage.getItem('kenncom_userName');
     const savedPhone = localStorage.getItem('kenncom_userPhone');
 
-    if (savedName && savedPhone) {
-      showPortal(savedName, savedPhone);
+    if (isLogged === 'true' && savedName) {
+      showPortal(savedName, savedPhone || "Active Session");
     }
     
     setupDragAndDrop();
   };
 
-  /* --- AUTHENTICATION & PASSWORD VALIDATION LOGIC --- */
+  /* --- AUTHENTICATION & SECURITY GUARD LOGIC --- */
   function switchAuthView(view) {
+    document.getElementById('signupFormContainer').classList.add('hidden');
+    document.getElementById('loginFormContainer').classList.add('hidden');
+    document.getElementById('codeVerifyContainer').classList.add('hidden');
+
     if (view === 'signup') {
       document.getElementById('signupFormContainer').classList.remove('hidden');
-      document.getElementById('loginFormContainer').classList.add('hidden');
-    } else {
-      document.getElementById('signupFormContainer').classList.add('hidden');
+    } else if (view === 'login') {
       document.getElementById('loginFormContainer').classList.remove('hidden');
+    } else if (view === 'code') {
+      document.getElementById('codeVerifyContainer').classList.remove('hidden');
     }
   }
 
   function validateStrongPassword(password) {
-    // Min 8 chars, at least one uppercase, one lowercase, one number, one special char
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
     return regex.test(password);
   }
 
   function handleSignUp() {
     const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
     const phone = document.getElementById('regPhone').value.trim();
     const password = document.getElementById('regPassword').value;
 
-    if (!name || !phone || !password) {
+    if (!name || !email || !phone || !password) {
       alert("Please fill in all sign-up fields.");
       return;
     }
@@ -345,37 +425,76 @@
       return;
     }
 
-    // Save credentials in localStorage
     localStorage.setItem('kenncom_userName', name);
+    localStorage.setItem('kenncom_userEmail', email);
     localStorage.setItem('kenncom_userPhone', phone);
     localStorage.setItem('kenncom_userPass', password);
+    localStorage.setItem('kenncom_isLoggedIn', 'true');
 
-    alert("Account successfully created!");
+    alert("Account successfully created and logged in!");
     showPortal(name, phone);
   }
 
   function handleLogin() {
-    const phone = document.getElementById('loginPhone').value.trim();
+    // Guard: Prevent double-login if session already active
+    if (localStorage.getItem('kenncom_isLoggedIn') === 'true') {
+      alert("You are already logged in!");
+      showPortal(localStorage.getItem('kenncom_userName'), localStorage.getItem('kenncom_userPhone'));
+      return;
+    }
+
+    const inputId = document.getElementById('loginPhone').value.trim();
     const password = document.getElementById('loginPassword').value;
 
     const storedPhone = localStorage.getItem('kenncom_userPhone');
+    const storedEmail = localStorage.getItem('kenncom_userEmail');
     const storedPass = localStorage.getItem('kenncom_userPass');
     const storedName = localStorage.getItem('kenncom_userName');
 
-    if (!storedPhone) {
+    if (!storedPhone && !storedEmail) {
       alert("No account found. Please sign up first.");
       switchAuthView('signup');
       return;
     }
 
-    if (phone === storedPhone && password === storedPass) {
+    if ((inputId === storedPhone || inputId === storedEmail) && password === storedPass) {
+      localStorage.setItem('kenncom_isLoggedIn', 'true');
       showPortal(storedName, storedPhone);
     } else {
-      alert("Invalid phone number or password. Please try again.");
+      alert("Invalid login credentials or password. Please try again.");
+    }
+  }
+
+  function requestEmailCode() {
+    const inputId = document.getElementById('loginPhone').value.trim();
+    const storedEmail = localStorage.getItem('kenncom_userEmail');
+
+    if (!inputId || (inputId !== storedEmail && inputId !== localStorage.getItem('kenncom_userPhone'))) {
+      alert("Please enter your registered Email or Phone Number above first to receive a code.");
+      return;
+    }
+
+    // Generate random 6 digit code
+    generatedEmailCode = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // In production, this would trigger an email gateway API. Displayed here for verification UX.
+    alert(`[Simulated Email Dispatch]\nA verification code has been sent to your email.\nYour Code is: ${generatedEmailCode}`);
+    switchAuthView('code');
+  }
+
+  function verifyEmailCode() {
+    const entered = document.getElementById('enteredCode').value.trim();
+    if (entered === generatedEmailCode && generatedEmailCode !== "") {
+      localStorage.setItem('kenncom_isLoggedIn', 'true');
+      alert("Email code verified successfully!");
+      showPortal(localStorage.getItem('kenncom_userName'), localStorage.getItem('kenncom_userPhone'));
+    } else {
+      alert("Invalid verification code. Please try again.");
     }
   }
 
   function logoutUser() {
+    localStorage.removeItem('kenncom_isLoggedIn');
     document.getElementById('portalContent').classList.add('hidden');
     document.getElementById('authCard').classList.remove('hidden');
     switchAuthView('login');
@@ -392,7 +511,7 @@
     const name = localStorage.getItem('kenncom_userName') || "Customer";
     const phone = localStorage.getItem('kenncom_userPhone') || "";
 
-    const msg = `Hello Kenncom Cyber, my name is ${name} (${phone}). I would like assistance with a document.`;
+    const msg = `Hello Kenncom Cyber, my name is ${name} (${phone}). I would like assistance with a service.`;
     window.location.href = `https://wa.me/${BUSINESS_PHONE}?text=${encodeURIComponent(msg)}`;
   }
 
@@ -516,7 +635,6 @@
       return { blob: file, name: file.name, type: file.type || 'application/octet-stream' };
     }
     
-    // Accurate Word-to-PDF conversion preserving native layout via HTML rendering
     else if (action === 'docx_to_pdf') {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
@@ -537,7 +655,7 @@
 
       const pdfWorker = html2pdf().from(renderContainer).set(opt);
       const pdfBlob = await pdfWorker.output('blob');
-      renderContainer.innerHTML = ""; // Clear
+      renderContainer.innerHTML = "";
       return { blob: pdfBlob, name: `${baseName}.pdf`, type: 'application/pdf' };
     }
     
