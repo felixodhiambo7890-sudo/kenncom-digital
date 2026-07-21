@@ -1,689 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KENNCOM DIGITAL CENTRE - Operational Suite</title>
-    <!-- FontAwesome & Google Fonts -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-primary: #080b10;
-            --bg-secondary: #0f141c;
-            --bg-card: #161b26;
-            --accent-green: #00ff66;
-            --accent-green-dim: rgba(0, 255, 102, 0.15);
-            --accent-blue: #00bfff;
-            --accent-red: #ff3366;
-            --text-main: #f0f6fc;
-            --text-muted: #8b949e;
-            --border-color: #21262d;
-            --border-highlight: #30363d;
-            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-            --font-mono: 'Fira Code', monospace;
-            --font-scale: 1;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Portal & File Upload</title>
+  
+  <!-- Required Libraries for In-Browser File Conversions -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+    .container { max-width: 500px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    h2, h3 { color: #1a1a1a; margin-top: 0; }
+    label { font-size: 0.85rem; font-weight: 600; color: #444; display: block; margin-top: 12px; }
+    input, select, button { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    
+    .btn-wa { background-color: #25D366; color: white; border: none; font-weight: bold; cursor: pointer; }
+    .btn-upload { background-color: #0066cc; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
+    button:disabled { background-color: #a0a0a0; cursor: not-allowed; }
+    
+    .divider { text-align: center; margin: 20px 0; border-bottom: 1px solid #eee; line-height: 0.1em; }
+    .divider span { background:#fff; padding:0 10px; color: #777; font-size: 0.85rem; }
 
-        body.theme-light {
-            --bg-primary: #f4f6f9;
-            --bg-secondary: #ffffff;
-            --bg-card: #ffffff;
-            --accent-green: #00a843;
-            --accent-green-dim: rgba(0, 168, 67, 0.15);
-            --text-main: #1c2128;
-            --text-muted: #57606a;
-            --border-color: #d0d7de;
-            --border-highlight: #afb8c1;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html { font-size: calc(16px * var(--font-scale)); }
-
-        body {
-            background-color: var(--bg-primary);
-            color: var(--text-main);
-            font-family: var(--font-sans);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        #matrix-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: 0;
-            opacity: 0.12;
-            pointer-events: none;
-        }
-
-        .app-container {
-            position: relative;
-            z-index: 1;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        header {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 15px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-        }
-
-        .brand-title h1 {
-            font-family: var(--font-mono);
-            font-size: 1.5rem;
-            color: var(--accent-green);
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .brand-title p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        .top-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .btn-icon {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            width: 38px; height: 38px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-icon:hover {
-            border-color: var(--accent-green);
-            color: var(--accent-green);
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-        }
-
-        .card-full {
-            grid-column: 1 / -1;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-
-        .card-header h2 {
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: var(--accent-green);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        input, select, textarea {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 10px 12px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-family: var(--font-sans);
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--accent-green);
-        }
-
-        .btn-action {
-            background: var(--accent-green);
-            color: #000;
-            font-weight: 700;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .btn-action:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--accent-green);
-            color: var(--accent-green);
-        }
-
-        .console-output {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px;
-            font-family: var(--font-mono);
-            font-size: 0.82rem;
-            color: var(--accent-green);
-            min-height: 60px;
-            max-height: 180px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-family: var(--font-mono);
-            background: var(--accent-green-dim);
-            color: var(--accent-green);
-        }
-
-        .status-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--accent-green);
-        }
-        .status-dot.offline { background: var(--accent-red); }
-
-        /* PORTAL DIRECTORY STYLES */
-        .portal-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 12px;
-            max-height: 400px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-
-        .portal-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 8px;
-            transition: border-color 0.2s;
-        }
-
-        .portal-card:hover {
-            border-color: var(--accent-green);
-        }
-
-        .portal-card h3 {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        .portal-card span {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-family: var(--font-mono);
-        }
-
-        .wifi-qr-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            padding: 15px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        .wifi-qr-card img {
-            max-width: 180px;
-            border-radius: 8px;
-            background: #fff;
-            padding: 8px;
-        }
-
-        footer {
-            text-align: center;
-            padding: 15px;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            border-top: 1px solid var(--border-color);
-            margin-top: auto;
-        }
-    </style>
+    .section-box { background: #f8f9fa; border: 1px dashed #bbb; padding: 15px; border-radius: 8px; margin-top: 15px; }
+    .status-msg { margin-top: 12px; font-size: 0.9rem; color: #0066cc; font-weight: 600; word-break: break-all; }
+  </style>
 </head>
 <body>
 
-    <canvas id="matrix-canvas"></canvas>
+<div class="container">
+  <h2>Customer Portal</h2>
+  
+  <label for="custName">Full Name:</label>
+  <input type="text" id="custName" placeholder="Enter full name">
 
-    <div class="app-container">
-        <header>
-            <div class="brand-title">
-                <h1><i class="fa-solid fa-terminal"></i> KENNCOM DIGITAL CENTRE</h1>
-                <p>Enterprise Operations, Portal Suite & Cyber Utility Hub</p>
-            </div>
-            <div class="top-controls">
-                <button class="btn-icon" onclick="cycleTheme()" title="Cycle Theme"><i class="fa-solid fa-circle-half-stroke"></i></button>
-                <button class="btn-icon" onclick="adjustTextSize(1)" title="Increase Font"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
-                <button class="btn-icon" onclick="adjustTextSize(-1)" title="Decrease Font"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
-                <button class="btn-icon" onclick="clearLocalState()" title="Reset State"><i class="fa-solid fa-arrows-rotate"></i></button>
-            </div>
-        </header>
+  <label for="custPhone">Phone Number:</label>
+  <input type="tel" id="custPhone" placeholder="e.g. +254712345678">
 
-        <main class="dashboard-grid">
+  <button class="btn-wa" onclick="sendWhatsApp()">Continue with WhatsApp</button>
 
-            <!-- FULL-WIDTH MODULE: KENYA EDUCATION & PUBLIC PORTAL DIRECTORY -->
-            <section class="card card-full">
-                <div class="card-header">
-                    <h2><i class="fa-solid fa-graduation-cap"></i> Official Kenyan Education & Portal Directory</h2>
-                    <span class="status-badge"><span class="status-dot"></span>88+ Portals Active</span>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="portal-search" placeholder=" Search portal (e.g. 'HELB', 'eCitizen', 'Moi', 'KUCCPS', 'KMTC', 'Baraton', 'Zetech')..." oninput="filterPortals()">
-                </div>
-                <div class="portal-grid" id="portal-container">
-                    <!-- Dynamic rendering via JS -->
-                </div>
-            </section>
+  <div class="divider"><span>DON'T HAVE WHATSAPP?</span></div>
 
-            <!-- MODULE: GUEST FAIBA WIFI ACCESS -->
-            <section class="card">
-                <div class="card-header">
-                    <h2><i class="fa-solid fa-wifi"></i> Guest WiFi Network</h2>
-                    <span class="status-badge"><span class="status-dot"></span>Faiba Connected</span>
-                </div>
-                <div class="wifi-qr-card">
-                    <h3 style="color: var(--accent-green); font-size: 1rem;">Faiba wifi</h3>
-                    <p style="font-size: 0.75rem; color: var(--text-muted);">Scan with camera to connect instantly</p>
-                    <div id="wifi-qr-container">
-                        <!-- Custom WiFi QR Display -->
-                        <div style="background:#fff; padding:10px; border-radius:8px; text-align:center;">
-                             <i class="fa-solid fa-qrcode" style="font-size: 110px; color: #111;"></i>
-                        </div>
-                    </div>
-                </div>
-            </section>
+  <!-- Document Portal & Direct Drive Upload -->
+  <div class="section-box">
+    <h3>Upload & Convert Document</h3>
+    <p style="font-size: 0.8rem; color: #666;">Convert your file if needed, then upload it directly to our Google Drive folder.</p>
+    
+    <label for="fileInput">Select File (PDF, DOCX, JPG, PNG, TXT):</label>
+    <input type="file" id="fileInput" accept=".pdf,.docx,.jpg,.jpeg,.png,.txt">
 
-            <!-- MODULE: SERVICE COST ESTIMATOR -->
-            <section class="card">
-                <div class="card-header">
-                    <h2><i class="fa-solid fa-calculator"></i> Cost Estimator</h2>
-                </div>
-                <div class="form-group">
-                    <label for="service-select">Select Service</label>
-                    <select id="service-select" onchange="calculateCost()">
-                        <option value="15">Document Printing / Page (KES 15)</option>
-                        <option value="50">Document Scanning (KES 50)</option>
-                        <option value="500">System Formatting & OS (KES 500)</option>
-                        <option value="300">Software Installation (KES 300)</option>
-                        <option value="1000">HELB / eCitizen Assistance (KES 1000)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="service-qty">Units / Pages</label>
-                    <input type="number" id="service-qty" value="1" min="1" oninput="calculateCost()">
-                </div>
-                <div class="form-group">
-                    <label>Estimated Total</label>
-                    <div class="console-output" id="cost-display">Total: KES 15.00</div>
-                </div>
-                <button class="btn-action btn-secondary" onclick="exportEstimateWhatsApp()">
-                    <i class="fa-brands fa-whatsapp"></i> Send Quote via WhatsApp
-                </button>
-            </section>
+    <label for="convertTarget">Action / Target Format:</label>
+    <select id="convertTarget">
+      <option value="direct">Upload As-Is (No Conversion)</option>
+      <option value="pdf">Convert Image to PDF & Upload</option>
+      <option value="txt">Extract to Text & Upload</option>
+    </select>
 
-            <!-- MODULE: LEISURE SESSION TRACKER -->
-            <section class="card">
-                <div class="card-header">
-                    <h2><i class="fa-solid fa-stopwatch"></i> Session Tracker</h2>
-                    <span id="tracker-status" class="status-badge"><span class="status-dot"></span>Idle</span>
-                </div>
-                <div class="form-group">
-                    <label for="client-name">Client Identification / PC #</label>
-                    <input type="text" id="client-name" placeholder="Station 01">
-                </div>
-                <div class="form-group">
-                    <label for="session-duration">Duration (Minutes)</label>
-                    <input type="number" id="session-duration" value="30" step="5">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-action" style="flex: 1;" onclick="startSession()"><i class="fa-solid fa-play"></i> Start</button>
-                    <button class="btn-action btn-secondary" onclick="stopSession()"><i class="fa-solid fa-square"></i> Stop</button>
-                </div>
-                <div class="console-output" id="timer-display">Ready to track...</div>
-            </section>
+    <button class="btn-upload" id="uploadBtn" onclick="handleFileProcessing()">Process & Upload to Drive</button>
+    <div id="status" class="status-msg"></div>
+  </div>
+</div>
 
-            <!-- MODULE: DATA SANITIZER UTILITY -->
-            <section class="card">
-                <div class="card-header">
-                    <h2><i class="fa-solid fa-shield-halved"></i> Data Sanitizer</h2>
-                </div>
-                <div class="form-group">
-                    <label for="raw-input">Raw Customer Text</label>
-                    <textarea id="raw-input" rows="3" placeholder="Paste text containing emails, phone numbers (+254 712 345 678), or National IDs..."></textarea>
-                </div>
-                <button class="btn-action" onclick="runSanitizer()"><i class="fa-solid fa-filter"></i> Sanitize & Redact</button>
-                <div class="form-group">
-                    <label>Sanitized Output</label>
-                    <div class="console-output" id="sanitizer-output">Sanitized logs appear here...</div>
-                </div>
-            </section>
+<script>
+  // YOUR LIVE GOOGLE APPS SCRIPT WEB APP URL
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTIBA2wSvQsbQyG3G6IEhUbzmOSW9-HcWrdIhR8Jf_JNRi7Oj6yH1Gn25Qk7-5jP5uSg/exec";
+  
+  // Replace with your business WhatsApp phone number (include country code without +)
+  const BUSINESS_PHONE = "254700000000"; 
 
-            <!-- MODULE: NETWORK DIAGNOSTIC -->
-            <section class="card">
-                <div class="card-header">
-                    <h2><i class="fa-solid fa-network-wired"></i> Network Diagnostics</h2>
-                    <span id="net-badge" class="status-badge"><span class="status-dot"></span>Checking...</span>
-                </div>
-                <div class="console-output" id="diag-display">Initializing diagnostic...</div>
-                <button class="btn-action" onclick="runDiagnostics()"><i class="fa-solid fa-rotate"></i> Ping Network</button>
-            </section>
+  // Restore saved customer info on page load
+  window.onload = function() {
+    if (localStorage.getItem('savedName')) document.getElementById('custName').value = localStorage.getItem('savedName');
+    if (localStorage.getItem('savedPhone')) document.getElementById('custPhone').value = localStorage.getItem('savedPhone');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+  };
 
-        </main>
+  function getAndSaveUser() {
+    const name = document.getElementById('custName').value.trim();
+    const phone = document.getElementById('custPhone').value.trim();
 
-        <footer>
-            <p>&copy; 2026 KENNCOM DIGITAL CENTRE. Integrated Operational Engine.</p>
-        </footer>
-    </div>
+    if (!name || !phone) {
+      alert("Please enter both your Name and Phone Number.");
+      return null;
+    }
 
-    <!-- QRCode JS API -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    localStorage.setItem('savedName', name);
+    localStorage.setItem('savedPhone', phone);
+    return { name, phone };
+  }
 
-    <script>
-        // === COMPREHENSIVE PORTAL DATABASE ===
-        const portals = [
-            // HEF, HELB & Govt Portals
-            { name: "HEF Portal (HELB & Scholarships)", cat: "funding", url: "https://portal.hef.co.ke/" },
-            { name: "HELB Main Portal", cat: "funding", url: "https://www.helb.co.ke/" },
-            { name: "KUCCPS Student Portal", cat: "placement", url: "https://students.kuccps.net/" },
-            { name: "KMTC Admissions Portal", cat: "health", url: "https://portal.kmtc.ac.ke/" },
-            { name: "eCitizen Gateway", cat: "govt", url: "https://accounts.ecitizen.go.ke/" },
-            { name: "KRA iTax Portal", cat: "govt", url: "https://itax.kra.go.ke/" },
-            { name: "Social Health Authority (SHA)", cat: "govt", url: "https://sha.go.ke/" },
+  function sendWhatsApp() {
+    const user = getAndSaveUser();
+    if (!user) return;
 
-            // Public Chartered Universities (36)
-            { name: "University of Nairobi (UoN)", cat: "public", url: "https://smis.uonbi.ac.ke/" },
-            { name: "Moi University", cat: "public", url: "https://portal.mu.ac.ke/" },
-            { name: "Kenyatta University (KU)", cat: "public", url: "https://portal.ku.ac.ke/" },
-            { name: "Egerton University", cat: "public", url: "https://portal.egerton.ac.ke/" },
-            { name: "JKUAT", cat: "public", url: "https://portal.jkuat.ac.ke/" },
-            { name: "Maseno University", cat: "public", url: "https://portal.maseno.ac.ke/" },
-            { name: "Masinde Muliro Univ. (MMUST)", cat: "public", url: "https://portal.mmust.ac.ke/" },
-            { name: "Dedan Kimathi (DeKUT)", cat: "public", url: "https://portal.dekut.ac.ke/" },
-            { name: "Chuka University", cat: "public", url: "https://portal.chuka.ac.ke/" },
-            { name: "Technical Univ. of Kenya (TUK)", cat: "public", url: "https://portal.tukenya.ac.ke/" },
-            { name: "Technical Univ. of Mombasa (TUM)", cat: "public", url: "https://portal.tum.ac.ke/" },
-            { name: "Pwani University", cat: "public", url: "https://portal.pu.ac.ke/" },
-            { name: "Kisii University", cat: "public", url: "https://portal.kisiiuniversity.ac.ke/" },
-            { name: "University of Eldoret", cat: "public", url: "https://portal.uoeld.ac.ke/" },
-            { name: "Maasai Mara University", cat: "public", url: "https://portal.mmarau.ac.ke/" },
-            { name: "JOOUST", cat: "public", url: "https://portal.jooust.ac.ke/" },
-            { name: "Laikipia University", cat: "public", url: "https://portal.laikipia.ac.ke/" },
-            { name: "SEKU", cat: "public", url: "https://portal.seku.ac.ke/" },
-            { name: "Meru Univ. of Science (MUST)", cat: "public", url: "https://portal.must.ac.ke/" },
-            { name: "Multimedia Univ. (MMU)", cat: "public", url: "https://portal.mmu.ac.ke/" },
-            { name: "University of Kabianga", cat: "public", url: "https://portal.kabianga.ac.ke/" },
-            { name: "Karatina University", cat: "public", url: "https://portal.karu.ac.ke/" },
-            { name: "Kibabii University", cat: "public", url: "https://portal.kibu.ac.ke/" },
-            { name: "Rongo University", cat: "public", url: "https://portal.rongovarsity.ac.ke/" },
-            { name: "Co-operative Univ. (CUK)", cat: "public", url: "https://portal.cuk.ac.ke/" },
-            { name: "Taita Taveta Univ. (TTU)", cat: "public", url: "https://portal.ttu.ac.ke/" },
-            { name: "Murang'a Univ. of Tech (MUT)", cat: "public", url: "https://portal.mut.ac.ke/" },
-            { name: "University of Embu", cat: "public", url: "https://portal.embuni.ac.ke/" },
-            { name: "Machakos University", cat: "public", url: "https://portal.mksu.ac.ke/" },
-            { name: "Kirinyaga University", cat: "public", url: "https://portal.kyu.ac.ke/" },
-            { name: "Garissa University", cat: "public", url: "https://portal.gau.ac.ke/" },
-            { name: "Alupe University", cat: "public", url: "https://portal.alupe.ac.ke/" },
-            { name: "Kaimosi Friends University", cat: "public", url: "https://portal.kafu.ac.ke/" },
-            { name: "Tom Mboya University", cat: "public", url: "https://portal.tmu.ac.ke/" },
-            { name: "Tharaka University", cat: "public", url: "https://portal.tharaka.ac.ke/" },
-            { name: "Bomet University", cat: "public", url: "https://portal.buc.ac.ke/" },
+    const msg = `Hello, my name is ${user.name} (${user.phone}). I would like to send a document.`;
+    window.location.href = `https://wa.me/${BUSINESS_PHONE}?text=${encodeURIComponent(msg)}`;
+  }
 
-            // Private Chartered Universities (Selected Popular)
-            { name: "Univ. of Eastern Africa, Baraton", cat: "private", url: "https://portal.ueab.ac.ke/" },
-            { name: "Catholic Univ. (CUEA)", cat: "private", url: "https://portal.cuea.edu/" },
-            { name: "Daystar University", cat: "private", url: "https://portal.daystar.ac.ke/" },
-            { name: "USIU-Africa", cat: "private", url: "https://cx.usiu.ac.ke/" },
-            { name: "Kenya Methodist Univ. (KeMU)", cat: "private", url: "https://portal.kemu.ac.ke/" },
-            { name: "Strathmore University", cat: "private", url: "https://ams.strathmore.edu/" },
-            { name: "Kabarak University", cat: "private", url: "https://portal.kabarak.ac.ke/" },
-            { name: "Mount Kenya Univ. (MKU)", cat: "private", url: "https://portal.mku.ac.ke/" },
-            { name: "KCA University", cat: "private", url: "https://portal.kca.ac.ke/" },
-            { name: "Zetech University", cat: "private", url: "https://portal.zetech.ac.ke/" }
-        ];
+  // Core Function: Uploads Blob/File to Google Drive Apps Script
+  async function uploadToGoogleDrive(fileBlob, fileName, mimeType) {
+    const user = getAndSaveUser();
+    if (!user) return;
 
-        function renderPortals(list) {
-            const container = document.getElementById('portal-container');
-            container.innerHTML = list.map(p => `
-                <div class="portal-card">
-                    <div>
-                        <span>${p.cat}</span>
-                        <h3>${p.name}</h3>
-                    </div>
-                    <a href="${p.url}" target="_blank" class="btn-action btn-secondary" style="font-size:0.75rem; padding:6px 10px;">
-                        Launch Portal <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                    </a>
-                </div>
-            `).join('');
-        }
+    const status = document.getElementById('status');
+    const uploadBtn = document.getElementById('uploadBtn');
+    
+    status.innerText = "Uploading directly to Google Drive...";
+    uploadBtn.disabled = true;
 
-        function filterPortals() {
-            const query = document.getElementById('portal-search').value.toLowerCase();
-            const filtered = portals.filter(p => p.name.toLowerCase().includes(query) || p.cat.toLowerCase().includes(query));
-            renderPortals(filtered);
-        }
+    const reader = new FileReader();
+    reader.readAsDataURL(fileBlob);
+    reader.onloadend = async function () {
+      const base64Data = reader.result.split(',')[1];
 
-        // === STATE & ACCESSIBILITY ===
-        const STATE_KEY = 'KENNCOM_STATE_V2';
-        let state = { theme: 'dark', fontScale: 1.0, activeSession: null };
+      const payload = {
+        customerName: user.name,
+        customerPhone: user.phone,
+        fileName: fileName,
+        mimeType: mimeType,
+        fileData: base64Data
+      };
 
-        function saveState() { localStorage.setItem(STATE_KEY, JSON.stringify(state)); }
-        function loadState() {
-            const saved = localStorage.getItem(STATE_KEY);
-            if (saved) {
-                try {
-                    state = Object.assign(state, JSON.parse(saved));
-                    applyState();
-                } catch(e){}
-            }
-        }
-
-        function applyState() {
-            if (state.theme === 'light') document.body.classList.add('theme-light');
-            else document.body.classList.remove('theme-light');
-            document.documentElement.style.setProperty('--font-scale', state.fontScale);
-        }
-
-        function cycleTheme() { state.theme = state.theme === 'dark' ? 'light' : 'dark'; applyState(); saveState(); }
-        function adjustTextSize(dir) { state.fontScale = Math.min(Math.max(state.fontScale + (dir * 0.05), 0.85), 1.25); applyState(); saveState(); }
-        function clearLocalState() { localStorage.removeItem(STATE_KEY); location.reload(); }
-
-        // === ESTIMATOR ===
-        function calculateCost() {
-            const rate = parseFloat(document.getElementById('service-select').value) || 0;
-            const qty = parseInt(document.getElementById('service-qty').value) || 0;
-            const total = rate * qty;
-            document.getElementById('cost-display').innerText = `Total: KES ${total.toFixed(2)}`;
-            return total;
-        }
-
-        function exportEstimateWhatsApp() {
-            const sel = document.getElementById('service-select');
-            const name = sel.options[sel.selectedIndex].text;
-            const qty = document.getElementById('service-qty').value;
-            const total = calculateCost();
-            const text = encodeURIComponent(`*KENNCOM DIGITAL ESTIMATE*\nService: ${name}\nUnits: ${qty}\nTotal Cost: KES ${total.toFixed(2)}`);
-            window.open(`https://wa.me/?text=${text}`, '_blank');
-        }
-
-        // === TIMER ===
-        let timerInterval = null;
-        function startSession() {
-            const client = document.getElementById('client-name').value.trim() || 'Station-1';
-            const duration = parseInt(document.getElementById('session-duration').value) || 30;
-            state.activeSession = { client, endTime: Date.now() + (duration * 60 * 1000) };
-            saveState();
-            runTimerLoop();
-        }
-
-        function stopSession() {
-            clearInterval(timerInterval);
-            state.activeSession = null;
-            saveState();
-            document.getElementById('timer-display').innerText = 'Session stopped.';
-            document.getElementById('tracker-status').innerHTML = '<span class="status-dot offline"></span>Idle';
-        }
-
-        function runTimerLoop() {
-            if (!state.activeSession) return;
-            document.getElementById('tracker-status').innerHTML = '<span class="status-dot"></span>Active';
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                const rem = Math.round((state.activeSession.endTime - Date.now()) / 1000);
-                if (rem <= 0) {
-                    clearInterval(timerInterval);
-                    document.getElementById('timer-display').innerText = `[EXPIRED] Session done for ${state.activeSession.client}`;
-                    state.activeSession = null;
-                    saveState();
-                } else {
-                    const m = Math.floor(rem / 60);
-                    const s = rem % 60;
-                    document.getElementById('timer-display').innerText = `Client: ${state.activeSession.client}\nRemaining: ${m}m ${s<10?'0':''}${s}s`;
-                }
-            }, 1000);
-        }
-
-        // === SANITIZER ===
-        function runSanitizer() {
-            const raw = document.getElementById('raw-input').value;
-            if(!raw) return;
-            const sanitized = raw
-                .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[REDACTED_EMAIL]')
-                .replace(/(?:\+?\d{1,3}[\s.-]?)?\(?\d{2,4}\)?[\s.-]?\d{3,4}[\s.-]?\d{3,4}\b/g, '[REDACTED_PHONE]')
-                .replace(/\b\d{7,9}\b/g, '[REDACTED_ID_NUMBER]');
-            document.getElementById('sanitizer-output').innerText = sanitized;
-        }
-
-        // === DIAGNOSTICS ===
-        function runDiagnostics() {
-            const display = document.getElementById('diag-display');
-            const badge = document.getElementById('net-badge');
-            display.innerText = 'Pinging local network gateway...';
-            setTimeout(() => {
-                if (navigator.onLine) {
-                    badge.innerHTML = '<span class="status-dot"></span>Online';
-                    display.innerText = `[OK] Network Connected\nHost: KENNCOM Local\nMode: Active`;
-                } else {
-                    badge.innerHTML = '<span class="status-dot offline"></span>Offline';
-                    display.innerText = `[WARN] Network Gateway Offline`;
-                }
-            }, 400);
-        }
-
-        // === MATRIX CANVAS ===
-        const canvas = document.getElementById('matrix-canvas');
-        const ctx = canvas.getContext('2d');
-        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-        const matrixChars = '0123456789KENNCOM@#$';
-        const fontSize = 14;
-        let drops = Array(Math.floor(canvas.width / fontSize)).fill(1);
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(8, 11, 16, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#00ff66';
-            ctx.font = `${fontSize}px monospace`;
-            for (let i = 0; i < drops.length; i++) {
-                const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            }
-        }
-        setInterval(drawMatrix, 33);
-
-        // INITIALIZE
-        window.addEventListener('load', () => {
-            loadState();
-            renderPortals(portals);
-            calculateCost();
-            runDiagnostics();
-            if (state.activeSession) runTimerLoop();
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
         });
-    </script>
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          status.innerText = "✅ Upload complete! File saved in Google Drive.";
+        } else {
+          status.innerText = "❌ Upload failed: " + result.message;
+        }
+      } catch (err) {
+        console.error(err);
+        status.innerText = "❌ Upload error. Please check network connection.";
+      } finally {
+        uploadBtn.disabled = false;
+      }
+    };
+  }
+
+  // Conversion & File Processing Routing
+  async function handleFileProcessing() {
+    const user = getAndSaveUser();
+    if (!user) return;
+
+    const fileInput = document.getElementById('fileInput');
+    const action = document.getElementById('convertTarget').value;
+    const status = document.getElementById('status');
+
+    if (fileInput.files.length === 0) {
+      alert("Please select a file first.");
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    status.innerText = "Processing file...";
+
+    try {
+      // 1. Direct Upload without Conversion
+      if (action === 'direct') {
+        uploadToGoogleDrive(file, file.name, file.type || 'application/octet-stream');
+      } 
+      // 2. Image -> PDF Conversion + Upload
+      else if (action === 'pdf' && ['jpg', 'jpeg', 'png', 'webp'].includes(fileExt)) {
+        const { jsPDF } = window.jspdf;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const doc = new jsPDF();
+          doc.addImage(e.target.result, 'JPEG', 10, 10, 180, 160);
+          const pdfBlob = doc.output('blob');
+          uploadToGoogleDrive(pdfBlob, `${file.name.split('.')[0]}_converted.pdf`, 'application/pdf');
+        };
+        reader.readAsDataURL(file);
+      }
+      // 3. Word (.docx) -> Text Extraction + Upload
+      else if (action === 'txt' && fileExt === 'docx') {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+        const txtBlob = new Blob([result.value], { type: 'text/plain' });
+        uploadToGoogleDrive(txtBlob, `${file.name.split('.')[0]}_extracted.txt`, 'text/plain');
+      }
+      // 4. PDF -> Text Extraction + Upload
+      else if (action === 'txt' && fileExt === 'pdf') {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let extractedText = "";
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          extractedText += textContent.items.map(item => item.str).join(" ") + "\n";
+        }
+        const txtBlob = new Blob([extractedText], { type: 'text/plain' });
+        uploadToGoogleDrive(txtBlob, `${file.name.split('.')[0]}_extracted.txt`, 'text/plain');
+      } 
+      else {
+        // Fallback to direct upload if selected action doesn't match input file format
+        uploadToGoogleDrive(file, file.name, file.type || 'application/octet-stream');
+      }
+    } catch (err) {
+      console.error(err);
+      status.innerText = "Error processing file. Attempting direct upload instead...";
+      uploadToGoogleDrive(file, file.name, file.type || 'application/octet-stream');
+    }
+  }
+</script>
+
 </body>
 </html>
