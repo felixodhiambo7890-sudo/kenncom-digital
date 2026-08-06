@@ -14,6 +14,9 @@
   <meta property="og:image" content="logo.png">
   <meta property="og:type" content="website">
 
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
   <!-- Required Libraries for In-Browser Conversions & Exact PDF Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -417,7 +420,18 @@
 </div>
 
 <script>
-  // GOOGLE APPS SCRIPT WEB APP ENDPOINT (ACTIVE DEPLOYMENT)
+  // EMAILJS INITIALIZATION
+  (function() {
+    emailjs.init({
+      publicKey: "gI-GzkejswNhQ15t9",
+    });
+  })();
+
+  // EMAILJS CONFIGURATION CONSTANTS
+  const EMAILJS_SERVICE_ID = "service_juk1ezi";
+  const EMAILJS_TEMPLATE_ID = "template_ki370fv";
+
+  // GOOGLE APPS SCRIPT WEB APP ENDPOINT
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLLDHCSKaKk0Pb9RCFgwYlnj-kBDL5YE8NwoFE6H9S-FsNtui2pb9-yX2UOKmoD8WG_g/exec";
   
   // Constant Business WhatsApp phone number
@@ -445,6 +459,7 @@
     }
     
     setupDragAndDrop();
+    initPassportResizer();
   };
 
   /* --- DASHBOARD TAB CONTROLLER --- */
@@ -498,26 +513,19 @@
     signupBtn.disabled = true;
     signupBtn.innerText = "Sending Real Email Code...";
 
-    const payload = {
-      action: "sendVerificationEmail",
-      email: email,
-      code: pendingVerificationCode
+    const templateParams = {
+      to_email: email,
+      passcode: pendingVerificationCode,
+      time: "15 minutes"
     };
 
     try {
-      // CORS-safe fetch request using text/plain to avoid OPTIONS pre-flight blocks
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-
-      alert("Verification request sent! Please check your email inbox (and Spam folder) for the 6-digit code.");
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+      alert("Verification email sent! Please check your email inbox (and Spam folder) for the 6-digit code.");
       switchAuthView('verifySignup');
     } catch (err) {
-      console.error(err);
-      alert("Verification request dispatched. Please check your email inbox.");
-      switchAuthView('verifySignup');
+      console.error('EmailJS Error:', err);
+      alert("Failed to send verification code. Please check your network or try again.");
     } finally {
       signupBtn.disabled = false;
       signupBtn.innerText = "Register & Send Email Code";
@@ -614,7 +622,7 @@
     statusDiv.innerText = "Submitting remote repair ticket...";
     
     setTimeout(() => {
-      statusDiv.innerText = "✅ Ticket submitted successfully! A technician will contact you shortly.";
+      statusDiv.innerText = "✅ Ticket submitted successfully! Redirecting to WhatsApp...";
       logActivity(`Submitted Remote Repair Ticket for ${device} via ${tool}`);
       
       const waMsg = `Hello Kenncom Cyber, my email is ${email}. I submitted a remote support ticket for my ${device}. Issue: ${issue}. Preferred tool: ${tool}.`;
@@ -629,6 +637,8 @@
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('fileInput');
     const selectedFileName = document.getElementById('selectedFileName');
+
+    if (!dropZone || !fileInput) return;
 
     dropZone.addEventListener('click', () => fileInput.click());
 
@@ -667,65 +677,69 @@
   }
 
   /* --- PASSPORT PHOTO RESIZER ENGINE --- */
-  const passportFileInput = document.getElementById('passport-file-input');
-  const processPassportBtn = document.getElementById('process-passport-btn');
-  const passportSpec = document.getElementById('passport-spec');
-  const passportCanvas = document.getElementById('passport-canvas');
-  const placeholderText = document.getElementById('placeholder-text');
-  const downloadPassportLink = document.getElementById('download-passport-link');
-  const passportCtx = passportCanvas.getContext('2d');
-  let loadedPassportImage = null;
+  function initPassportResizer() {
+    const passportFileInput = document.getElementById('passport-file-input');
+    const processPassportBtn = document.getElementById('process-passport-btn');
+    const passportSpec = document.getElementById('passport-spec');
+    const passportCanvas = document.getElementById('passport-canvas');
+    const placeholderText = document.getElementById('placeholder-text');
+    const downloadPassportLink = document.getElementById('download-passport-link');
+    const passportCtx = passportCanvas.getContext('2d');
+    let loadedPassportImage = null;
 
-  passportFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        loadedPassportImage = new Image();
-        loadedPassportImage.onload = function() {
-          processPassportBtn.disabled = false;
-          placeholderText.textContent = "Image loaded! Click 'Resize & Generate Photo' to convert.";
+    if (!passportFileInput) return;
+
+    passportFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          loadedPassportImage = new Image();
+          loadedPassportImage.onload = function() {
+            processPassportBtn.disabled = false;
+            placeholderText.textContent = "Image loaded! Click 'Resize & Generate Photo' to convert.";
+          };
+          loadedPassportImage.src = evt.target.result;
         };
-        loadedPassportImage.src = evt.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  });
+        reader.readAsDataURL(file);
+      }
+    });
 
-  processPassportBtn.addEventListener('click', () => {
-    if (!loadedPassportImage) return;
+    processPassportBtn.addEventListener('click', () => {
+      if (!loadedPassportImage) return;
 
-    const [targetWidth, targetHeight] = passportSpec.value.split('x').map(Number);
-    passportCanvas.width = targetWidth;
-    passportCanvas.height = targetHeight;
+      const [targetWidth, targetHeight] = passportSpec.value.split('x').map(Number);
+      passportCanvas.width = targetWidth;
+      passportCanvas.height = targetHeight;
 
-    const targetAspect = targetWidth / targetHeight;
-    const imgAspect = loadedPassportImage.width / loadedPassportImage.height;
+      const targetAspect = targetWidth / targetHeight;
+      const imgAspect = loadedPassportImage.width / loadedPassportImage.height;
 
-    let sourceX = 0, sourceY = 0, sourceWidth = loadedPassportImage.width, sourceHeight = loadedPassportImage.height;
+      let sourceX = 0, sourceY = 0, sourceWidth = loadedPassportImage.width, sourceHeight = loadedPassportImage.height;
 
-    if (imgAspect > targetAspect) {
-      sourceWidth = loadedPassportImage.height * targetAspect;
-      sourceX = (loadedPassportImage.width - sourceWidth) / 2;
-    } else {
-      sourceHeight = loadedPassportImage.width / targetAspect;
-      sourceY = (loadedPassportImage.height - sourceHeight) / 2;
-    }
+      if (imgAspect > targetAspect) {
+        sourceWidth = loadedPassportImage.height * targetAspect;
+        sourceX = (loadedPassportImage.width - sourceWidth) / 2;
+      } else {
+        sourceHeight = loadedPassportImage.width / targetAspect;
+        sourceY = (loadedPassportImage.height - sourceHeight) / 2;
+      }
 
-    passportCtx.drawImage(
-      loadedPassportImage, 
-      sourceX, sourceY, sourceWidth, sourceHeight, 
-      0, 0, targetWidth, targetHeight
-    );
+      passportCtx.drawImage(
+        loadedPassportImage, 
+        sourceX, sourceY, sourceWidth, sourceHeight, 
+        0, 0, targetWidth, targetHeight
+      );
 
-    placeholderText.style.display = 'none';
-    passportCanvas.style.display = 'block';
+      placeholderText.style.display = 'none';
+      passportCanvas.style.display = 'block';
 
-    const dataURL = passportCanvas.toDataURL('image/jpeg', 0.95);
-    downloadPassportLink.href = dataURL;
-    downloadPassportLink.style.display = 'block';
-    logActivity("Generated Passport Photo");
-  });
+      const dataURL = passportCanvas.toDataURL('image/jpeg', 0.95);
+      downloadPassportLink.href = dataURL;
+      downloadPassportLink.style.display = 'block';
+      logActivity("Generated Passport Photo");
+    });
+  }
 
   /* --- LAYOUT-ACCURATE DOCUMENT CONVERSION ENGINE --- */
   async function generateProcessedFile() {
@@ -905,7 +919,7 @@
         processedFileName = res.name;
       }
 
-      const email = localStorage.getItem('kenncom_userEmail');
+      const email = localStorage.getItem('kenncom_userEmail') || "Anonymous";
 
       status.innerText = "Uploading directly to Google Drive...";
       uploadBtn.disabled = true;
