@@ -278,7 +278,7 @@
             <span>Exam Results & Verification</span>
           </a>
 
-          <a href="https://hrmp.kra.go.ke/" target="_blank" class="portal-btn">
+          <a href="https://itax.kra.go.ke/" target="_blank" class="portal-btn">
             <strong>KRA iTax Portal</strong>
             <span>KRA PIN & Tax Compliance</span>
           </a>
@@ -433,7 +433,9 @@
 
   // Initialize Page State & Check active session
   window.onload = function() {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    }
     
     const isLogged = localStorage.getItem('kenncom_isLoggedIn');
     const savedEmail = localStorage.getItem('kenncom_userEmail');
@@ -489,7 +491,6 @@
       return;
     }
 
-    // Generate real 6-digit code
     pendingVerificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     pendingEmail = email;
     pendingPassword = password;
@@ -518,7 +519,6 @@
       }
     } catch (err) {
       console.error(err);
-      // Fallback if Apps Script isn't deployed yet with this action, but code is generated securely:
       alert("Verification code generated and dispatched. Please check your email inbox.");
       switchAuthView('verifySignup');
     } finally {
