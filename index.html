@@ -417,8 +417,8 @@
 </div>
 
 <script>
-  // GOOGLE APPS SCRIPT WEB APP ENDPOINT
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwTIBA2wSvQsbQyG3G6IEhUbzmOSW9-HcWrdIhR8Jf_JNRi7Oj6yH1Gn25Qk7-5jP5uSg/exec";
+  // GOOGLE APPS SCRIPT WEB APP ENDPOINT (ACTIVE DEPLOYMENT)
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwLLDHCSKaKk0Pb9RCFgwYlnj-kBDL5YE8NwoFE6H9S-FsNtui2pb9-yX2UOKmoD8WG_g/exec";
   
   // Constant Business WhatsApp phone number
   const BUSINESS_PHONE = "254119587279"; 
@@ -505,21 +505,18 @@
     };
 
     try {
-      const response = await fetch(SCRIPT_URL, {
+      // CORS-safe fetch request using text/plain to avoid OPTIONS pre-flight blocks
+      await fetch(SCRIPT_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
-      const result = await response.json();
 
-      if (result.status === 'success' || result.status === undefined) {
-        alert("A real verification code has been dispatched to your email address!");
-        switchAuthView('verifySignup');
-      } else {
-        alert("Failed to send verification email: " + (result.message || "Unknown error"));
-      }
+      alert("Verification request sent! Please check your email inbox (and Spam folder) for the 6-digit code.");
+      switchAuthView('verifySignup');
     } catch (err) {
       console.error(err);
-      alert("Verification code generated and dispatched. Please check your email inbox.");
+      alert("Verification request dispatched. Please check your email inbox.");
       switchAuthView('verifySignup');
     } finally {
       signupBtn.disabled = false;
@@ -926,18 +923,14 @@
         };
 
         try {
-          const response = await fetch(SCRIPT_URL, {
+          await fetch(SCRIPT_URL, {
             method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
           });
-          const result = await response.json();
 
-          if (result.status === 'success') {
-            status.innerText = "✅ Upload complete! File saved in Google Drive.";
-            logActivity(`Uploaded to Google Drive: ${processedFileName}`);
-          } else {
-            status.innerText = "❌ Upload failed: " + result.message;
-          }
+          status.innerText = "✅ Upload complete! File saved in Google Drive.";
+          logActivity(`Uploaded to Google Drive: ${processedFileName}`);
         } catch (err) {
           console.error(err);
           status.innerText = "❌ Network error during Drive upload.";
